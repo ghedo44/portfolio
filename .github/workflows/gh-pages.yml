@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy Astro to GitHub Pages
 
 on:
   push:
@@ -23,36 +23,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          cache: true
-          cache_dependency_path: pnpm-lock.yaml
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - name: Build and upload Astro site
+        uses: withastro/action@v6
         with:
           node-version: 20
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Configure GitHub Pages
-        id: pages
-        uses: actions/configure-pages@v6
-
-      - name: Build Next.js
-        run: pnpm build
-        env:
-          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
-
-      - name: Verify static export
-        run: test -f out/index.html
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: ./out
+          package-manager: pnpm
 
   deploy:
     needs: build
@@ -66,4 +41,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
-
