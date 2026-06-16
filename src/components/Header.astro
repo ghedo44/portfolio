@@ -5,8 +5,18 @@ import HeaderLink from './HeaderLink.astro';
 const titleText = `«${SITE_TITLE}»`;
 ---
 
-<header class="" transition:persist>
-	<nav class="flex justify-between items-center p-4 max-w-3xl mx-auto">
+<header class="relative isolate" transition:persist>
+	<div
+		class="
+			pointer-events-none
+			absolute inset-0
+			bg-white/40
+			backdrop-blur-2xl
+			[mask-image:linear-gradient(to_bottom,black_0%,transparent_70%)]
+			[-webkit-mask-image:linear-gradient(to_bottom,black_0%,transparent_70%)]
+		"
+	/>
+	<nav class="relative flex justify-between items-center p-4 max-w-3xl mx-auto z-10">
 		<h2>
 			<a href="/" class="site-title text-black! text-4xl font-bold transition" aria-label={titleText}>
 				<span class="site-title__text" data-text={titleText}>{titleText}</span>
