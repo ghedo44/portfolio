@@ -26,8 +26,8 @@ jobs:
       - name: Build and upload Astro site
         uses: withastro/action@v6
         with:
-          node-version: 24
-          package-manager: pnpm
+          node-version: 20
+          package-manager: pnpm@10.33.0
 
   deploy:
     needs: build
