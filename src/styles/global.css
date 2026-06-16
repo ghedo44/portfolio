@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+:root {
+    --color-primary: #000000;
+    --color-secondary: #861f8a;
+    --color-background: #ffffff;
+    --color-text: #000000;
+}
+
+html {
+	font-family: system-ui, sans-serif;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+
+main {
+	flex: 1;
+}
+
+a {
+	color: var(--color-secondary);
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+code {
+	background-color: #f0f0f0;
+	padding: 0.125rem 0.25rem;
+	border-radius: 0.25rem;
+	font-size: 0.9em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	line-height: 1.2;
+}
+
+ul {
+	list-style-position: inside;
+}
