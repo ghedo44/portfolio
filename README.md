@@ -2,7 +2,12 @@
 
 Personal portfolio — aerospace projects and technical notes about space engineering.
 
-Built with [Astro](https://astro.build), styled with [Tailwind CSS](https://tailwindcss.com).
+## Built with
+
+* [Astro](https://astro.build/) — static site framework
+* [Tailwind CSS](https://tailwindcss.com) — utility-first CSS framework
+* [Giscus](https://giscus.app/) — comments powered by GitHub Discussions
+* [Pages CMS](https://pagescms.org/) — Git-based content management
 
 ## Requirements
 
