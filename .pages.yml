@@ -1,0 +1,172 @@
+media:
+  - name: site_images
+    label: Site images
+    input: src/assets
+    output: ../../assets
+    categories: [image]
+    extensions: [jpg, jpeg, png, webp, gif, svg]
+    rename: safe
+
+content:
+  - name: blog
+    label: Blog posts
+    type: collection
+    path: src/content/blog
+    format: yaml-frontmatter
+    subfolders: false
+    filename:
+      template: "{primary}.mdx"
+      field: create
+    view:
+      fields: [title, pubDate, draft, featured]
+      primary: title
+      sort: [pubDate, title]
+      search: [title, description, tags, author]
+      default:
+        sort: pubDate
+        order: desc
+    fields:
+      - name: title
+        label: Title
+        type: string
+        required: true
+        options:
+          maxlength: 120
+      - name: description
+        label: Description
+        type: text
+        required: true
+        options:
+          maxlength: 320
+      - name: pubDate
+        label: Publication date
+        type: date
+        required: true
+        options:
+          format: yyyy-MM-dd
+      - name: updatedDate
+        label: Updated date
+        type: date
+        description: Leave empty unless the post has been substantially updated.
+        options:
+          format: yyyy-MM-dd
+      - name: heroImage
+        label: Hero image
+        type: image
+        options:
+          media: site_images
+          extensions: [jpg, jpeg, png, webp, gif, svg]
+      - name: heroImageAlt
+        label: Hero image alt text
+        type: string
+        description: Describe the image for screen readers.
+      - name: tags
+        label: Tags
+        type: string
+        list: true
+        default: []
+      - name: author
+        label: Author
+        type: string
+        default: ghedo
+      - name: featured
+        label: Featured
+        type: boolean
+        default: false
+      - name: draft
+        label: Draft
+        type: boolean
+        default: true
+        description: Draft posts are excluded from the public site.
+      - name: body
+        label: Content
+        type: rich-text
+        required: true
+        options:
+          format: markdown
+          switcher: true
+          media: site_images
+          rename: safe
+
+  - name: projects
+    label: Projects
+    type: collection
+    path: src/content/projects
+    format: yaml-frontmatter
+    subfolders: false
+    filename:
+      template: "{primary}.mdx"
+      field: create
+    view:
+      fields: [title, draft, featured]
+      primary: title
+      sort: [title]
+      search: [title, description, tags]
+      default:
+        sort: title
+        order: asc
+    fields:
+      - name: title
+        label: Title
+        type: string
+        required: true
+        options:
+          maxlength: 120
+      - name: description
+        label: Description
+        type: text
+        required: true
+        options:
+          maxlength: 320
+      - name: href
+        label: Project URL
+        type: string
+        description: Optional live demo or project website.
+      - name: repository
+        label: Repository URL
+        type: string
+        description: Optional source-code repository.
+      - name: tags
+        label: Tags
+        type: string
+        list: true
+        default: []
+      - name: featured
+        label: Featured
+        type: boolean
+        default: false
+      - name: heroImage
+        label: Hero image
+        type: image
+        options:
+          media: site_images
+          extensions: [jpg, jpeg, png, webp, gif, svg]
+      - name: heroImageAlt
+        label: Hero image alt text
+        type: string
+        description: Describe the image for screen readers.
+      - name: draft
+        label: Draft
+        type: boolean
+        default: true
+        description: Draft projects are excluded from the public site.
+      - name: body
+        label: Content
+        type: rich-text
+        required: true
+        options:
+          format: markdown
+          switcher: true
+          media: site_images
+          rename: safe
+
+settings:
+  content:
+    merge: true
+  commit:
+    identity: user
+    templates:
+      create: "content: create {path}"
+      update: "content: update {path}"
+      delete: "content: delete {path}"
+      rename: "content: rename {oldPath} to {newPath}"
