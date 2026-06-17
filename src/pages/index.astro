@@ -14,7 +14,7 @@ import {
 import { getPublishedPosts } from "../utils/posts";
 import { getPublishedProjects } from "../utils/projects";
 
-const posts = (await getPublishedPosts()).slice(0, 3);
+const posts = (await getPublishedPosts()).slice(0, 2);
 const featuredProjects = (await getPublishedProjects())
   .filter((p) => p.data.featured)
   .slice(0, 3);

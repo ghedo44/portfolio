@@ -1,0 +1,105 @@
+---
+title: "KaTeX Math Test"
+description: "A test post showcasing LaTeX math rendering with KaTeX — from orbital mechanics to vector calculus."
+pubDate: "2026-06-17"
+heroImage: "../../assets/blog-placeholder-2.jpg"
+heroImageAlt: ""
+tags: ["math", "test"]
+featured: false
+draft: true
+---
+
+This post tests **KaTeX** math rendering in MDX. Both inline and display math should render correctly.
+
+## Inline math
+
+Newton's second law: $\mathbf{F} = m\mathbf{a}$. Mass-energy equivalence: $E = mc^2$.
+
+Specific impulse: $I_{sp} = \frac{v_e}{g_0}$, where $v_e$ is exhaust velocity and $g_0 = 9.80665\ \text{m/s}^2$.
+
+A quadratic formula: $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$.
+
+## Display math
+
+### Tsiolkovsky rocket equation
+
+$$
+\Delta v = v_e \ln\left(\frac{m_0}{m_f}\right) = I_{sp}\ g_0 \ln\left(\frac{m_0}{m_f}\right)
+$$
+
+Where $\Delta v$ is delta-v, $m_0$ initial mass, $m_f$ final mass.
+
+### Orbital period (Kepler's third law)
+
+$$
+T = 2\pi \sqrt{\frac{a^3}{\mu}}
+$$
+
+For a circular orbit: $T = \frac{2\pi r^{3/2}}{\sqrt{\mu}}$, where $\mu = GM$ is the standard gravitational parameter.
+
+### Specific orbital energy
+
+$$
+\varepsilon = \frac{v^2}{2} - \frac{\mu}{r} = -\frac{\mu}{2a}
+$$
+
+The vis-viva equation:
+
+$$
+v = \sqrt{\mu\left(\frac{2}{r} - \frac{1}{a}\right)}
+$$
+
+### Matrices and vectors
+
+State vector in Cartesian coordinates:
+
+$$
+\mathbf{x} = \begin{bmatrix} x \\ y \\ z \\ \dot{x} \\ \dot{y} \\ \dot{z} \end{bmatrix}
+$$
+
+Rotation matrix about the $z$-axis:
+
+$$
+R_z(\theta) = \begin{bmatrix}
+\cos\theta & -\sin\theta & 0 \\
+\sin\theta &  \cos\theta & 0 \\
+0          &  0          & 1
+\end{bmatrix}
+$$
+
+### Integrals
+
+Gravitational potential of a continuous mass distribution:
+
+$$
+U(\mathbf{r}) = -G \iiint_V \frac{\rho(\mathbf{r}')}{|\mathbf{r} - \mathbf{r}'|}\ d^3\mathbf{r}'
+$$
+
+### Maxwell's equations (differential form)
+
+$$
+\begin{aligned}
+\nabla \cdot \mathbf{E} &= \frac{\rho}{\varepsilon_0} \\[4pt]
+\nabla \cdot \mathbf{B} &= 0 \\[4pt]
+\nabla \times \mathbf{E} &= -\frac{\partial \mathbf{B}}{\partial t} \\[4pt]
+\nabla \times \mathbf{B} &= \mu_0\mathbf{J} + \mu_0\varepsilon_0\frac{\partial \mathbf{E}}{\partial t}
+\end{aligned}
+$$
+
+## Inline with display context
+
+The Hohmann transfer delta-v from orbit 1 to orbit 2:
+
+$$
+\Delta v_1 = \sqrt{\frac{\mu}{r_1}} \left( \sqrt{\frac{2r_2}{r_1 + r_2}} - 1 \right)
+$$
+
+$$
+\Delta v_2 = \sqrt{\frac{\mu}{r_2}} \left( 1 - \sqrt{\frac{2r_1}{r_1 + r_2}} \right)
+$$
+
+Total: $\Delta v_\text{total} = |\Delta v_1| + |\Delta v_2|$.
+
+---
+
+That covers the main LaTeX features: fractions, subscripts, superscripts, Greek letters, matrices, brackets, aligned equations, integrals, and inline/display modes.
