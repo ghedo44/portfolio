@@ -1,130 +1,144 @@
 ---
-import { SITE_TITLE } from '../consts';
-import HeaderLink from './HeaderLink.astro';
+import { NAVIGATION, SITE_TITLE } from "../consts";
+import HeaderLink from "./HeaderLink.astro";
 
 const titleText = `«${SITE_TITLE}»`;
 ---
 
 <header class="relative isolate" transition:persist>
-	<div
-		class="
-			pointer-events-none
-			absolute inset-0
-			bg-white/40
-			backdrop-blur-2xl
-			[mask-image:linear-gradient(to_bottom,black_0%,transparent_70%)]
-			[-webkit-mask-image:linear-gradient(to_bottom,black_0%,transparent_70%)]
-		"
-	/>
-	<nav class="relative flex justify-between items-center p-4 max-w-3xl mx-auto z-10">
-		<h2>
-			<a href="/" class="site-title text-black! text-4xl font-bold transition" aria-label={titleText}>
-				<span class="site-title__text" data-text={titleText}>{titleText}</span>
-			</a>
-		</h2>
-		<div>
-			<HeaderLink href="/blog">Blog</HeaderLink>
-		</div>
-	</nav>
+  <div
+    class="pointer-events-none absolute inset-0 bg-white/40 backdrop-blur-2xl
+    mask-[linear-gradient(to_bottom,black_0%,transparent_70%)]
+    [-webkit-mask-image:linear-gradient(to_bottom,black_0%,transparent_70%)]"
+  >
+  </div>
+  <nav
+    class="relative flex justify-between items-center p-4 max-w-3xl mx-auto z-10"
+    aria-label="Primary navigation"
+  >
+    <a
+      href="/"
+      class="site-title text-black! text-4xl font-bold no-underline"
+      aria-label={titleText}
+    >
+      <span class="site-title__text" data-text={titleText}>{titleText}</span>
+    </a>
+    <div class="flex gap-4">
+      {
+        NAVIGATION.filter((item) => item.href !== "/").map((item) => (
+          <HeaderLink href={item.href}>{item.label}</HeaderLink>
+        ))
+      }
+    </div>
+  </nav>
 </header>
 
 <style>
-	.site-title {
-		display: inline-block;
-		position: relative;
-		text-decoration: none;
-	}
+  .site-title {
+    display: inline-block;
+    position: relative;
+    text-decoration: none;
+  }
 
-	.site-title__text {
-		position: relative;
-		display: inline-block;
-		transition: transform 160ms ease, text-shadow 160ms ease, color 160ms ease;
-	}
+  .site-title__text {
+    position: relative;
+    display: inline-block;
+    transition:
+      transform 160ms ease,
+      text-shadow 160ms ease,
+      color 160ms ease;
+  }
 
-	.site-title__text::before,
-	.site-title__text::after {
-		content: attr(data-text);
-		position: absolute;
-		inset: 0;
-		opacity: 0;
-		pointer-events: none;
-		transition: opacity 160ms ease;
-	}
+  .site-title__text::before,
+  .site-title__text::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms ease;
+  }
 
-	.site-title__text::before {
-		color: #000;
-		transform: translate(0, 0);
-	}
+  .site-title__text::before {
+    color: #000;
+    transform: translate(0, 0);
+  }
 
-	.site-title__text::after {
-		color: #000;
-		-webkit-text-stroke: 1px #000;
-		text-shadow: 0 0 0 #000;
-		transform: translate(0, 0);
-	}
+  .site-title__text::after {
+    color: #000;
+    -webkit-text-stroke: 1px #000;
+    text-shadow: 0 0 0 #000;
+    transform: translate(0, 0);
+  }
 
-	.site-title:hover .site-title__text,
-	.site-title:focus-visible .site-title__text {
-		animation: site-title-glitch 220ms steps(2, end) 1 both;
-		font-weight: 600;
-		text-shadow: 0.04em 0 0 #000, -0.04em 0 0 #000;
-	}
+  @media (prefers-reduced-motion: no-preference) {
+    .site-title:hover .site-title__text,
+    .site-title:focus-visible .site-title__text {
+      animation: site-title-glitch 220ms steps(2, end) 1 both;
+      font-weight: 600;
+      text-shadow:
+        0.04em 0 0 #000,
+        -0.04em 0 0 #000;
+    }
 
-	.site-title:hover .site-title__text::before,
-	.site-title:hover .site-title__text::after,
-	.site-title:focus-visible .site-title__text::before,
-	.site-title:focus-visible .site-title__text::after {
-		opacity: 0.5;
-	}
+    .site-title:hover .site-title__text::before,
+    .site-title:hover .site-title__text::after,
+    .site-title:focus-visible .site-title__text::before,
+    .site-title:focus-visible .site-title__text::after {
+      opacity: 0.5;
+    }
 
-	.site-title:hover .site-title__text::before,
-	.site-title:focus-visible .site-title__text::before {
-		animation: site-title-glitch-before 220ms steps(2, end) 1 both;
-	}
+    .site-title:hover .site-title__text::before,
+    .site-title:focus-visible .site-title__text::before {
+      animation: site-title-glitch-before 220ms steps(2, end) 1 both;
+    }
 
-	.site-title:hover .site-title__text::after,
-	.site-title:focus-visible .site-title__text::after {
-		animation: site-title-glitch-after 220ms steps(2, end) 1 both;
-	}
+    .site-title:hover .site-title__text::after,
+    .site-title:focus-visible .site-title__text::after {
+      animation: site-title-glitch-after 220ms steps(2, end) 1 both;
+    }
+  }
 
-	@keyframes site-title-glitch {
-		0%,
-		100% {
-			transform: translate(0, 0);
-		}
+  @media (prefers-reduced-motion: reduce) {
+    .site-title:hover .site-title__text,
+    .site-title:focus-visible .site-title__text {
+      font-weight: 600;
+    }
+  }
 
-		25% {
-			transform: translate(-1px, 0);
-		}
+  @keyframes site-title-glitch {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    25% {
+      transform: translate(-1px, 0);
+    }
+    50% {
+      transform: translate(1px, 0);
+    }
+    75% {
+      transform: translate(0, -1px);
+    }
+  }
 
-		50% {
-			transform: translate(1px, 0);
-		}
+  @keyframes site-title-glitch-before {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(-1px, 0);
+    }
+  }
 
-		75% {
-			transform: translate(0, -1px);
-		}
-	}
-
-	@keyframes site-title-glitch-before {
-		0%,
-		100% {
-			transform: translate(0, 0);
-		}
-
-		50% {
-			transform: translate(-1px, 0);
-		}
-	}
-
-	@keyframes site-title-glitch-after {
-		0%,
-		100% {
-			transform: translate(0, 0);
-		}
-
-		50% {
-			transform: translate(1px, 0);
-		}
-	}
+  @keyframes site-title-glitch-after {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(1px, 0);
+    }
+  }
 </style>

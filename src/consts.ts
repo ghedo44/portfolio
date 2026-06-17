@@ -1,5 +1,40 @@
-// Place any global data in this file.
-// You can import this data from anywhere in your site by using the `import` keyword.
+// Global site configuration.
+// Import this from anywhere in your site.
 
-export const SITE_TITLE = 'ghedo';
-export const SITE_DESCRIPTION = 'Welcome to my website!';
+export const SITE_TITLE = "ghedo";
+
+export const SITE_DESCRIPTION =
+  "Personal portfolio, aerospace projects and technical notes about space engineering.";
+
+export const SITE_LANGUAGE = "en";
+export const SITE_LOCALE = "en-US";
+
+export const NAVIGATION = [
+  { href: "/", label: "Home" },
+  { href: "/blog/", label: "Blog" },
+] as const;
+
+export const SOCIAL_LINKS = [
+  {
+    label: "GitHub",
+    href: "https://github.com/ghedo44",
+  },
+  {
+    label: "LinkedIn",
+    href: "https://linkedin.com/in/federico-ghedini",
+  },
+  {
+    label: "Instagram",
+    href: "https://instagram.com/ghedo44",
+  },
+] as const;
+
+export const AREAS_OF_INTEREST = [
+  "Aerospace engineering",
+  "Space engineering",
+  "Spacecraft design",
+  "Coding",
+  "Space technologies",
+  "Technical writing",
+  "Teamwork and sport",
+] as const;

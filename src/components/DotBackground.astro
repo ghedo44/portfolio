@@ -1,373 +1,343 @@
 <div class="dot-background" aria-hidden="true">
-	<canvas class="dot-background__canvas"></canvas>
+  <canvas class="dot-background__canvas"></canvas>
 </div>
 
 <script is:inline data-astro-rerun>
-	(() => {
-		const cleanupKey = '__dotGravityCleanup';
-		window[cleanupKey]?.();
-
-		const canvas = document.querySelector('.dot-background__canvas');
-		const context = canvas?.getContext('2d');
-
-		if (!canvas || !context) return;
-
-		const config = {
-			spacing: 28,
-			dotRadius: 1,
-
-			influenceRadius: 190,
-			maxPull: 24,
-
-			// Lower values create more cursor delay.
-			pointerFollow: 7,
-
-			parallaxFollow: 4,
-			parallaxX: 18,
-			parallaxY: 14,
-
-			// Controls how dots follow and return to their grid positions.
-			spring: 65,
-			damping: 13,
-
-			baseOpacity: 0.12,
-			focusOpacity: 0.3,
-		};
-
-		const motionQuery = window.matchMedia(
-			'(prefers-reduced-motion: reduce)',
-		);
-		const listeners = new AbortController();
-
-		let width = 0;
-		let height = 0;
-		let frameId = 0;
-		let previousTime = performance.now();
-		let dots = [];
-
-		const pointer = {
-			x: window.innerWidth / 2,
-			y: window.innerHeight / 2,
-			targetX: window.innerWidth / 2,
-			targetY: window.innerHeight / 2,
-			active: false,
-		};
-
-		const parallax = {
-			x: 0,
-			y: 0,
-			targetX: 0,
-			targetY: 0,
-		};
-
-		function createDots() {
-			const padding = config.spacing * 2;
-			const nextDots = [];
-
-			for (
-				let y = -padding;
-				y <= height + padding;
-				y += config.spacing
-			) {
-				for (
-					let x = -padding;
-					x <= width + padding;
-					x += config.spacing
-				) {
-					nextDots.push({
-						x,
-						y,
-						offsetX: 0,
-						offsetY: 0,
-						velocityX: 0,
-						velocityY: 0,
-					});
-				}
-			}
-
-			dots = nextDots;
-		}
-
-		function resetDots() {
-			for (const dot of dots) {
-				dot.offsetX = 0;
-				dot.offsetY = 0;
-				dot.velocityX = 0;
-				dot.velocityY = 0;
-			}
-		}
-
-		function resize() {
-			width = window.innerWidth;
-			height = window.innerHeight;
-
-			const pixelRatio = Math.min(
-				window.devicePixelRatio || 1,
-				2,
-			);
-
-			canvas.width = Math.round(width * pixelRatio);
-			canvas.height = Math.round(height * pixelRatio);
-
-			context.setTransform(
-				pixelRatio,
-				0,
-				0,
-				pixelRatio,
-				0,
-				0,
-			);
-
-			createDots();
-
-			if (motionQuery.matches) {
-				draw();
-			}
-		}
-
-		function setPointer(event) {
-			if (event.pointerType === 'touch') return;
-
-			pointer.targetX = event.clientX;
-			pointer.targetY = event.clientY;
-			pointer.active = true;
-
-			parallax.targetX =
-				(event.clientX / width - 0.5) * config.parallaxX;
-
-			parallax.targetY =
-				(event.clientY / height - 0.5) * config.parallaxY;
-		}
-
-		function releasePointer() {
-			pointer.active = false;
-			parallax.targetX = 0;
-			parallax.targetY = 0;
-		}
-
-		function update(deltaTime) {
-			const pointerEase =
-				1 - Math.exp(-config.pointerFollow * deltaTime);
-
-			const parallaxEase =
-				1 - Math.exp(-config.parallaxFollow * deltaTime);
-
-			const drag = Math.exp(-config.damping * deltaTime);
-
-			pointer.x +=
-				(pointer.targetX - pointer.x) * pointerEase;
-
-			pointer.y +=
-				(pointer.targetY - pointer.y) * pointerEase;
-
-			parallax.x +=
-				(parallax.targetX - parallax.x) * parallaxEase;
-
-			parallax.y +=
-				(parallax.targetY - parallax.y) * parallaxEase;
-
-			for (const dot of dots) {
-				const baseX = dot.x + parallax.x;
-				const baseY = dot.y + parallax.y;
-
-				const distanceX = pointer.x - baseX;
-				const distanceY = pointer.y - baseY;
-				const distance = Math.hypot(
-					distanceX,
-					distanceY,
-				);
-
-				let targetOffsetX = 0;
-				let targetOffsetY = 0;
-
-				if (
-					pointer.active &&
-					distance > 0 &&
-					distance < config.influenceRadius
-				) {
-					const normalizedDistance =
-						1 -
-						distance /
-							config.influenceRadius;
-
-					const force =
-						normalizedDistance *
-						normalizedDistance;
-
-					const pull = config.maxPull * force;
-
-					targetOffsetX =
-						(distanceX / distance) * pull;
-
-					targetOffsetY =
-						(distanceY / distance) * pull;
-				}
-
-				dot.velocityX +=
-					(targetOffsetX - dot.offsetX) *
-					config.spring *
-					deltaTime;
-
-				dot.velocityY +=
-					(targetOffsetY - dot.offsetY) *
-					config.spring *
-					deltaTime;
-
-				dot.velocityX *= drag;
-				dot.velocityY *= drag;
-
-				dot.offsetX += dot.velocityX * deltaTime;
-				dot.offsetY += dot.velocityY * deltaTime;
-			}
-		}
-
-		function draw() {
-			context.clearRect(0, 0, width, height);
-			context.fillStyle = '#000';
-
-			for (const dot of dots) {
-				const x =
-					dot.x + parallax.x + dot.offsetX;
-
-				const y =
-					dot.y + parallax.y + dot.offsetY;
-
-				const distance = Math.hypot(
-					pointer.x - x,
-					pointer.y - y,
-				);
-
-				const focus = pointer.active
-					? Math.max(
-							0,
-							1 -
-								distance /
-									config.influenceRadius,
-						)
-					: 0;
-
-				context.globalAlpha =
-					config.baseOpacity +
-					focus * config.focusOpacity;
-
-				context.beginPath();
-				context.arc(
-					x,
-					y,
-					config.dotRadius + focus * 0.35,
-					0,
-					Math.PI * 2,
-				);
-				context.fill();
-			}
-
-			context.globalAlpha = 1;
-		}
-
-		function animate(time) {
-			const deltaTime = Math.min(
-				(time - previousTime) / 1000,
-				1 / 30,
-			);
-
-			previousTime = time;
-
-			update(deltaTime);
-			draw();
-
-			frameId = requestAnimationFrame(animate);
-		}
-
-		function startAnimation() {
-			cancelAnimationFrame(frameId);
-
-			if (motionQuery.matches) {
-				releasePointer();
-				resetDots();
-
-				parallax.x = 0;
-				parallax.y = 0;
-
-				draw();
-				return;
-			}
-
-			previousTime = performance.now();
-			frameId = requestAnimationFrame(animate);
-		}
-
-		function cleanup() {
-			cancelAnimationFrame(frameId);
-			listeners.abort();
-
-			motionQuery.removeEventListener?.(
-				'change',
-				startAnimation,
-			);
-
-			if (window[cleanupKey] === cleanup) {
-				delete window[cleanupKey];
-			}
-		}
-
-		window[cleanupKey] = cleanup;
-
-		window.addEventListener('pointermove', setPointer, {
-			passive: true,
-			signal: listeners.signal,
-		});
-
-		window.addEventListener('resize', resize, {
-			passive: true,
-			signal: listeners.signal,
-		});
-
-		window.addEventListener('blur', releasePointer, {
-			signal: listeners.signal,
-		});
-
-		document.documentElement.addEventListener(
-			'mouseleave',
-			releasePointer,
-			{ signal: listeners.signal },
-		);
-
-		document.addEventListener(
-			'astro:before-swap',
-			cleanup,
-			{
-				once: true,
-				signal: listeners.signal,
-			},
-		);
-
-		motionQuery.addEventListener?.(
-			'change',
-			startAnimation,
-		);
-
-		resize();
-		startAnimation();
-	})();
+  (() => {
+    const cleanupKey = "__dotGravityCleanup";
+    window[cleanupKey]?.();
+
+    const canvas = document.querySelector(".dot-background__canvas");
+    const context = canvas?.getContext("2d");
+
+    if (!canvas || !context) return;
+
+    const config = {
+      spacing: 28,
+      dotRadius: 1,
+
+      influenceRadius: 190,
+      maxPull: 24,
+
+      pointerFollow: 7,
+      parallaxFollow: 4,
+      parallaxX: 18,
+      parallaxY: 14,
+
+      spring: 65,
+      damping: 13,
+
+      baseOpacity: 0.12,
+      focusOpacity: 0.3,
+    };
+
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const coarsePointer = window.matchMedia("(pointer: coarse)");
+    const listeners = new AbortController();
+
+    let width = 0;
+    let height = 0;
+    let frameId = 0;
+    let previousTime = 0;
+    let dots = [];
+    let idleFrames = 0;
+    let isVisible = true;
+
+    const pointer = {
+      x: 0,
+      y: 0,
+      targetX: 0,
+      targetY: 0,
+      active: false,
+    };
+
+    const parallax = {
+      x: 0,
+      y: 0,
+      targetX: 0,
+      targetY: 0,
+    };
+
+    function createDots() {
+      const padding = config.spacing * 2;
+      const nextDots = [];
+
+      for (let y = -padding; y <= height + padding; y += config.spacing) {
+        for (let x = -padding; x <= width + padding; x += config.spacing) {
+          nextDots.push({
+            x,
+            y,
+            offsetX: 0,
+            offsetY: 0,
+            velocityX: 0,
+            velocityY: 0,
+          });
+        }
+      }
+      dots = nextDots;
+    }
+
+    function resetDots() {
+      for (const dot of dots) {
+        dot.offsetX = 0;
+        dot.offsetY = 0;
+        dot.velocityX = 0;
+        dot.velocityY = 0;
+      }
+    }
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(width * pixelRatio);
+      canvas.height = Math.round(height * pixelRatio);
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+      createDots();
+
+      if (motionQuery.matches) {
+        draw();
+      }
+    }
+
+    function setPointer(event) {
+      if (event.pointerType === "touch" || coarsePointer.matches) return;
+
+      pointer.targetX = event.clientX;
+      pointer.targetY = event.clientY;
+      pointer.active = true;
+      idleFrames = 0;
+
+      parallax.targetX = (event.clientX / width - 0.5) * config.parallaxX;
+      parallax.targetY = (event.clientY / height - 0.5) * config.parallaxY;
+
+      // Restart animation if idle timeout stopped it
+      if (!frameId && !motionQuery.matches) {
+        previousTime = performance.now();
+        frameId = requestAnimationFrame(animate);
+      }
+    }
+
+    function releasePointer() {
+      pointer.active = false;
+      parallax.targetX = 0;
+      parallax.targetY = 0;
+    }
+
+    function isAtRest() {
+      // Check if all dots and parallax are effectively at rest
+      if (Math.abs(parallax.x) > 0.01 || Math.abs(parallax.y) > 0.01)
+        return false;
+      if (
+        Math.abs(parallax.targetX) > 0.01 ||
+        Math.abs(parallax.targetY) > 0.01
+      )
+        return false;
+      for (const dot of dots) {
+        if (Math.abs(dot.offsetX) > 0.05 || Math.abs(dot.offsetY) > 0.05)
+          return false;
+        if (Math.abs(dot.velocityX) > 0.01 || Math.abs(dot.velocityY) > 0.01)
+          return false;
+      }
+      return true;
+    }
+
+    function update(deltaTime) {
+      const pointerEase = 1 - Math.exp(-config.pointerFollow * deltaTime);
+      const parallaxEase = 1 - Math.exp(-config.parallaxFollow * deltaTime);
+      const drag = Math.exp(-config.damping * deltaTime);
+
+      pointer.x += (pointer.targetX - pointer.x) * pointerEase;
+      pointer.y += (pointer.targetY - pointer.y) * pointerEase;
+
+      parallax.x += (parallax.targetX - parallax.x) * parallaxEase;
+      parallax.y += (parallax.targetY - parallax.y) * parallaxEase;
+
+      for (const dot of dots) {
+        const baseX = dot.x + parallax.x;
+        const baseY = dot.y + parallax.y;
+
+        const distanceX = pointer.x - baseX;
+        const distanceY = pointer.y - baseY;
+        const distance = Math.hypot(distanceX, distanceY);
+
+        let targetOffsetX = 0;
+        let targetOffsetY = 0;
+
+        if (
+          pointer.active &&
+          distance > 0 &&
+          distance < config.influenceRadius
+        ) {
+          const normalizedDistance = 1 - distance / config.influenceRadius;
+          const force = normalizedDistance * normalizedDistance;
+          const pull = config.maxPull * force;
+
+          targetOffsetX = (distanceX / distance) * pull;
+          targetOffsetY = (distanceY / distance) * pull;
+        }
+
+        dot.velocityX +=
+          (targetOffsetX - dot.offsetX) * config.spring * deltaTime;
+        dot.velocityY +=
+          (targetOffsetY - dot.offsetY) * config.spring * deltaTime;
+        dot.velocityX *= drag;
+        dot.velocityY *= drag;
+        dot.offsetX += dot.velocityX * deltaTime;
+        dot.offsetY += dot.velocityY * deltaTime;
+      }
+    }
+
+    function draw() {
+      context.clearRect(0, 0, width, height);
+      context.fillStyle = "#000";
+
+      for (const dot of dots) {
+        const x = dot.x + parallax.x + dot.offsetX;
+        const y = dot.y + parallax.y + dot.offsetY;
+
+        const distance = Math.hypot(pointer.x - x, pointer.y - y);
+        const focus = pointer.active
+          ? Math.max(0, 1 - distance / config.influenceRadius)
+          : 0;
+
+        context.globalAlpha = config.baseOpacity + focus * config.focusOpacity;
+        context.beginPath();
+        context.arc(x, y, config.dotRadius + focus * 0.35, 0, Math.PI * 2);
+        context.fill();
+      }
+      context.globalAlpha = 1;
+    }
+
+    function animate(time) {
+      if (!isVisible) {
+        frameId = requestAnimationFrame(animate);
+        return;
+      }
+
+      if (motionQuery.matches) {
+        // Static grid already drawn by resize(); never loop
+        return;
+      }
+
+      const deltaTime = Math.min((time - previousTime) / 1000, 1 / 30);
+      previousTime = time;
+
+      update(deltaTime);
+      draw();
+
+      // Idle detection: if nothing moving and pointer inactive, stop loop
+      if (!pointer.active && isAtRest()) {
+        idleFrames++;
+        if (idleFrames > 120) {
+          // ~2 seconds at 60fps — stop looping. Restarted on pointermove.
+          cancelAnimationFrame(frameId);
+          frameId = 0;
+          return;
+        }
+      } else {
+        idleFrames = 0;
+      }
+
+      frameId = requestAnimationFrame(animate);
+    }
+
+    function startAnimation() {
+      cancelAnimationFrame(frameId);
+      idleFrames = 0;
+
+      if (motionQuery.matches) {
+        releasePointer();
+        resetDots();
+        parallax.x = 0;
+        parallax.y = 0;
+        draw();
+        return;
+      }
+
+      previousTime = performance.now();
+      frameId = requestAnimationFrame(animate);
+    }
+
+    function onVisibilityChange() {
+      isVisible = document.visibilityState === "visible";
+      if (isVisible) {
+        previousTime = performance.now();
+        if (!frameId) {
+          idleFrames = 0;
+          frameId = requestAnimationFrame(animate);
+        }
+      } else {
+        cancelAnimationFrame(frameId);
+        frameId = 0;
+      }
+    }
+
+    function cleanup() {
+      cancelAnimationFrame(frameId);
+      frameId = 0;
+      listeners.abort();
+      motionQuery.removeEventListener?.("change", startAnimation);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      if (window[cleanupKey] === cleanup) {
+        delete window[cleanupKey];
+      }
+    }
+
+    window[cleanupKey] = cleanup;
+
+    window.addEventListener("pointermove", setPointer, {
+      passive: true,
+      signal: listeners.signal,
+    });
+
+    window.addEventListener("resize", resize, {
+      passive: true,
+      signal: listeners.signal,
+    });
+
+    window.addEventListener("blur", releasePointer, {
+      signal: listeners.signal,
+    });
+
+    document.documentElement.addEventListener("mouseleave", releasePointer, {
+      signal: listeners.signal,
+    });
+
+    document.addEventListener("astro:before-swap", cleanup, {
+      once: true,
+      signal: listeners.signal,
+    });
+
+    motionQuery.addEventListener?.("change", startAnimation);
+    document.addEventListener("visibilitychange", onVisibilityChange, {
+      signal: listeners.signal,
+    });
+
+    resize();
+    startAnimation();
+  })();
 </script>
 
 <style>
-	.dot-background {
-		position: fixed;
-		inset: 0;
-		z-index: -1;
-		overflow: hidden;
-		pointer-events: none;
-		background: linear-gradient(
-			180deg,
-			rgba(255, 255, 255, 0.98) 0%,
-			rgba(248, 248, 248, 0.92) 100%
-		);
-	}
+  .dot-background {
+	z-index: -1;
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.98) 0%,
+      rgba(248, 248, 248, 0.92) 100%
+    );
+  }
 
-	.dot-background__canvas {
-		display: block;
-		width: 100%;
-		height: 100%;
-	}
+  .dot-background__canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
 </style>

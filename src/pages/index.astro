@@ -1,57 +1,166 @@
 ---
-import "../styles/global.css";
-import BaseHead from '../components/BaseHead.astro';
-import DotBackground from '../components/DotBackground.astro';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { Image } from "astro:assets";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import FormattedDate from "../components/FormattedDate.astro";
+import ProjectCard from "../components/ProjectCard.astro";
+import SocialLinks from "../components/SocialLinks.astro";
+import {
+  AREAS_OF_INTEREST,
+  NAVIGATION,
+  SITE_DESCRIPTION,
+  SITE_TITLE,
+  SOCIAL_LINKS,
+} from "../consts";
+import projects from "../data/projects";
+import { getPublishedPosts } from "../utils/posts";
+
+const posts = (await getPublishedPosts()).slice(0, 3);
+const featuredProjects = projects.filter((p) => p.featured).slice(0, 3);
+const blogLink =
+  NAVIGATION.find((item) => item.href === "/blog/")?.href || "/blog/";
+const githubLink = SOCIAL_LINKS.find((l) => l.label === "GitHub")?.href || "#";
+const linkedinLink =
+  SOCIAL_LINKS.find((l) => l.label === "LinkedIn")?.href || "#";
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body class="bg-white text-gray-900">
-		<DotBackground />
-		<Header />
-		<main class="max-w-2xl mx-auto px-4 py-12 sm:py-16">
-			<h1 class="text-4xl font-bold mb-2">Hello!</h1>
-			<p class="text-xl text-gray-600 mb-8">Aerospace Engineer | Master's Student at Politecnico di Milano</p>
-			<div class="prose prose-sm max-w-none space-y-4 text-base leading-relaxed">
-				<p>
-					Welcome to my portfolio. I graduated with a degree in <strong>Aerospace Engineering</strong> in March 2026 and am now pursuing a Master's in <strong>Space Engineering</strong> at Politecnico di Milano.
-				</p>
-				<p>
-					Passionate about space technologies, spacecraft design, and advancing humanity's presence in space. This site showcases my projects, research, and insights from my journey in aerospace engineering.
-				</p>
-				<p>
-					Outside of engineering, I like staying active and I play hockey, so sports and teamwork are a big part of how I spend my time.
-				</p>
-				<h2 class="text-2xl font-bold mt-8 mb-4">Let's connect</h2>
-				<p>
-					Feel free to explore my <a href="/blog" class="font-semibold text-gray-900 hover:underline">blog</a> for articles and updates, or connect with me directly here:
-				</p>
-				<ul class="space-y-2 list-disc">
-					<li>
-						<a href="/blog" class="font-semibold text-gray-900 hover:underline">Read the blog</a>
-						for project notes, updates, and a few thoughts along the way.
-					</li>
-					<li>
-						<a href="https://instagram.com/ghedo44" target="_blank" rel="noreferrer" class="font-semibold text-gray-900 hover:underline">Instagram</a>
-						for a more personal look at what I am up to.
-					</li>
-					<li>
-						<a href="https://linkedin.com/in/federico-ghedini" target="_blank" rel="noreferrer" class="font-semibold text-gray-900 hover:underline">LinkedIn</a>
-						for professional updates and experience.
-					</li>
-					<li>
-						<a href="https://github.com/ghedo44" target="_blank" rel="noreferrer" class="font-semibold text-gray-900 hover:underline">GitHub</a>
-						for code and technical projects.
-					</li>
-				</ul>
-			</div>
-		</main>
-		<Footer />
-	</body>
-</html>
+<BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
+  <!-- Hero -->
+  <section class="max-w-3xl mx-auto px-4 py-16 sm:py-24">
+    <h1 class="text-5xl font-bold mb-4 tracking-tight">ghedo</h1>
+    <p class="text-xl text-gray-600 mb-8 leading-relaxed">
+      Aerospace engineer and Space Engineering student focused on spacecraft,
+      space technologies and technical exploration.
+    </p>
+    <div class="flex flex-wrap gap-3">
+      <a
+        href={blogLink}
+        class="inline-flex items-center px-5 py-2.5 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors duration-400 focus-visible:outline-2 focus-visible:outline-offset-2"
+      >
+        Read the blog
+      </a>
+      <a
+        href={githubLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-400"
+      >
+        GitHub
+      </a>
+      <a
+        href={linkedinLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-400"
+      >
+        LinkedIn
+      </a>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="max-w-3xl mx-auto px-4 py-12 border-t border-gray-100">
+    <h2 class="text-2xl font-bold mb-6">About</h2>
+    <div class="text-gray-700 leading-relaxed space-y-4">
+      <p>
+        I graduated with a degree in <strong>Aerospace Engineering</strong>
+        in March 2026 and am now pursuing a Master's in
+        <strong>Space Engineering</strong> at Politecnico di Milano.
+      </p>
+      <p>
+        Passionate about space technologies, spacecraft design, and advancing
+        humanity's presence in space. This site showcases my projects, research,
+        and insights from my journey in aerospace engineering.
+      </p>
+      <p>
+        Outside of engineering, I stay active playing hockey &mdash; sports and
+        teamwork are a big part of how I spend my time.
+      </p>
+    </div>
+  </section>
+
+  <!-- Selected Work -->
+  {
+    featuredProjects.length > 0 && (
+      <section class="max-w-3xl mx-auto px-4 py-12 border-t border-gray-100">
+        <h2 class="text-2xl font-bold mb-6">Selected work</h2>
+        <div class="grid gap-6 sm:grid-cols-2">
+          {featuredProjects.map((project) => (
+            <ProjectCard project={project} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- Areas of interest -->
+  <section class="max-w-3xl mx-auto px-4 py-12 border-t border-gray-100">
+    <h2 class="text-2xl font-bold mb-6">Areas of interest</h2>
+    <div class="flex flex-wrap gap-2">
+      {
+        AREAS_OF_INTEREST.map((area) => (
+          <span class="text-sm text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full">
+            {area}
+          </span>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Latest posts -->
+  <section class="max-w-3xl mx-auto px-4 py-12 border-t border-gray-100">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold">Latest posts</h2>
+      <a
+        href={blogLink}
+        class="text-sm text-gray-600 hover:text-black transition-colors"
+      >
+        All posts &rarr;
+      </a>
+    </div>
+    {
+      posts.length > 0 ? (
+        <div class="grid gap-6 sm:grid-cols-2">
+          {posts.map((post) => (
+            <a
+              href={`/blog/${post.id}/`}
+              class="block border border-gray-200 rounded-lg p-5 bg-white/20 backdrop-blur-xs hover:border-gray-300 transition-colors group"
+            >
+              {post.data.heroImage && (
+                <div class="mb-4 rounded-lg overflow-hidden">
+                  <Image
+                    width={360}
+                    height={180}
+                    src={post.data.heroImage}
+                    alt={post.data.heroImageAlt || ""}
+                    class="w-full h-36 object-cover group-hover:opacity-85 transition"
+					transition:name={`post-image-${post.id}`}
+                  />
+                </div>
+              )}
+              <h3 class="font-semibold mb-1 group-hover:underline">
+                <span transition:name={`post-title-${post.id}`}>{post.data.title}</span>
+              </h3>
+              <p class="text-sm text-gray-500 mb-2">
+                <span transition:name={`post-date-${post.id}`}>
+                  <FormattedDate date={post.data.pubDate} />
+                </span>
+              </p>
+              <p class="text-sm text-gray-600 line-clamp-2">
+                {post.data.description}
+              </p>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <p class="text-gray-500 text-sm">No posts yet. Check back soon.</p>
+      )
+    }
+  </section>
+
+  <!-- Connect -->
+  <section class="max-w-3xl mx-auto px-4 py-12 border-t border-gray-100">
+    <h2 class="text-2xl font-bold mb-6">Connect</h2>
+    <p class="text-gray-700 mb-4">Find me on GitHub, LinkedIn or Instagram.</p>
+    <SocialLinks />
+  </section>
+</BaseLayout>
