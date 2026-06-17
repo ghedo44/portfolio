@@ -5,6 +5,7 @@ import "katex/dist/katex.min.css";
 import BaseLayout from "./BaseLayout.astro";
 import FormattedDate from "../components/FormattedDate.astro";
 import HeaderLink from "../components/HeaderLink.astro";
+import Comments from "../components/Comments.astro";
 
 type Props = CollectionEntry<"blog">;
 
@@ -94,6 +95,7 @@ const pageTitle = `${title}`;
         &larr; All posts
       </HeaderLink>
     </div>
+    <Comments />
   </div>
 
   <script is:inline>
