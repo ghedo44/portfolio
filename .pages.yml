@@ -1,8 +1,15 @@
 media:
-  - name: site_images
-    label: Site images
-    input: src/assets
-    output: ../../assets
+  - name: blog_images
+    label: Blog images
+    input: src/assets/blog
+    output: ../../assets/blog
+    categories: [image]
+    extensions: [jpg, jpeg, png, webp, gif, svg]
+    rename: safe
+  - name: project_images
+    label: Project images
+    input: src/assets/projects
+    output: ../../assets/projects
     categories: [image]
     extensions: [jpg, jpeg, png, webp, gif, svg]
     rename: safe
@@ -54,7 +61,7 @@ content:
         label: Hero image
         type: image
         options:
-          media: site_images
+          media: blog_images
           extensions: [jpg, jpeg, png, webp, gif, svg]
       - name: heroImageAlt
         label: Hero image alt text
@@ -85,7 +92,7 @@ content:
         options:
           format: markdown
           switcher: true
-          media: site_images
+          media: blog_images
           rename: safe
 
   - name: projects
@@ -139,7 +146,7 @@ content:
         label: Hero image
         type: image
         options:
-          media: site_images
+          media: project_images
           extensions: [jpg, jpeg, png, webp, gif, svg]
       - name: heroImageAlt
         label: Hero image alt text
@@ -157,7 +164,7 @@ content:
         options:
           format: markdown
           switcher: true
-          media: site_images
+          media: project_images
           rename: safe
 
 settings:
