@@ -1,0 +1,98 @@
+---
+import { Image } from "astro:assets";
+import type { CollectionEntry } from "astro:content";
+import BaseLayout from "./BaseLayout.astro";
+import HeaderLink from "../components/HeaderLink.astro";
+
+type Props = CollectionEntry<"projects">;
+
+const { id, data } = Astro.props;
+const {
+  title,
+  description,
+  heroImage,
+  heroImageAlt,
+  tags,
+  href,
+  repository,
+} = data;
+const pageTitle = `${title}`;
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={description}
+  image={heroImage || undefined}
+  pageType="website"
+>
+  <div class="max-w-3xl mx-auto px-4 py-12 sm:py-16">
+    <div class="mb-8">
+      <HeaderLink href="/projects/">&larr; All projects</HeaderLink>
+    </div>
+    <article>
+      <header class="mb-8">
+        {
+          heroImage && (
+            <div class="mb-8 rounded-lg overflow-hidden" transition:name={`project-image-${id}`}>
+              <Image
+                width={1020}
+                height={510}
+                src={heroImage}
+                alt={heroImageAlt || ""}
+                class="w-full"
+              />
+            </div>
+          )
+        }
+        <h1 class="text-4xl font-bold mb-4">
+          <span transition:name={`project-title-${id}`}>{title}</span>
+        </h1>
+        {
+          tags && tags.length > 0 && (
+            <div class="flex flex-wrap gap-1.5 mt-3">
+              {tags.map((tag) => (
+                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full" transition:name={`project-tag-${id}-${tag}`}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )
+        }
+        <div class="flex flex-wrap gap-3 mt-4">
+          {
+            href && (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-4 py-2 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors text-sm"
+              >
+                Live site &rarr;
+              </a>
+            )
+          }
+          {
+            repository && (
+              <a
+                href={repository}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors text-sm"
+              >
+                Repository &rarr;
+              </a>
+            )
+          }
+        </div>
+        <hr class="my-6" />
+      </header>
+
+      <div class="prose prose-neutral max-w-none">
+        <slot />
+      </div>
+    </article>
+    <div class="mt-12">
+      <HeaderLink href="/projects/">&larr; All projects</HeaderLink>
+    </div>
+  </div>
+</BaseLayout>

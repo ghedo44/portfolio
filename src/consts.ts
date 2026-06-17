@@ -12,6 +12,7 @@ export const SITE_LOCALE = "en-US";
 export const NAVIGATION = [
   { href: "/", label: "Home" },
   { href: "/blog/", label: "Blog" },
+  { href: "/projects/", label: "Projects" },
 ] as const;
 
 export const SOCIAL_LINKS = [

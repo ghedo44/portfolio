@@ -1,47 +1,73 @@
 ---
-import type { Project } from "../data/projects";
+import { Image } from "astro:assets";
+import type { CollectionEntry } from "astro:content";
 
 interface Props {
-  project: Project;
+  project: CollectionEntry<"projects">;
 }
 
 const { project } = Astro.props;
+const { title, description, href, repository, tags, heroImage, heroImageAlt } = project.data;
+const slug = project.id;
 ---
 
 <div
-  class="border border-gray-200 rounded-lg bg-white/20 backdrop-blur-xs p-6 hover:border-gray-300 transition-colors"
+  class="border border-gray-200 rounded-lg bg-white/20 backdrop-blur-xs hover:border-gray-300 transition-colors overflow-hidden group"
 >
-  <div class="flex flex-wrap gap-2 mb-3">
-    {
-      project.tags?.map((tag) => (
-        <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-          {tag}
-        </span>
-      ))
-    }
-  </div>
-  <h3 class="text-lg font-semibold mb-2">
-    {
-      project.href ? (
-        <a href={project.href} class="hover:underline">
-          {project.title}
-        </a>
-      ) : (
-        project.title
-      )
-    }
-  </h3>
-  <p class="text-gray-600 text-sm mb-3">{project.description}</p>
   {
-    project.repository && (
-      <a
-        href={project.repository}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-      >
-        Repository &rarr;
-      </a>
+    heroImage && (
+      <div class="overflow-hidden" transition:name={`project-image-${slug}`}>
+        <Image
+          width={720}
+          height={360}
+          src={heroImage}
+          alt={heroImageAlt || ""}
+          class="w-full h-40 object-cover group-hover:opacity-85 transition"
+        />
+      </div>
     )
   }
+  <div class="p-6">
+    <div class="flex flex-wrap gap-2 mb-3">
+      {
+        tags?.map((tag) => (
+          <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full" transition:name={`project-tag-${slug}-${tag}`}>
+            {tag}
+          </span>
+        ))
+      }
+    </div>
+    <h3 class="text-lg font-semibold mb-2">
+      <a href={`/projects/${slug}/`} class="hover:underline">
+        <span transition:name={`project-title-${slug}`}>{title}</span>
+      </a>
+    </h3>
+    <p class="text-gray-600 text-sm mb-3">{description}</p>
+    <div class="flex flex-wrap gap-x-4 gap-y-1">
+      {
+        href && (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            Live site &rarr;
+          </a>
+        )
+      }
+      {
+        repository && (
+          <a
+            href={repository}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            Repository &rarr;
+          </a>
+        )
+      }
+    </div>
+  </div>
 </div>

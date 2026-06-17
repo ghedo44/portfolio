@@ -3,6 +3,7 @@ import { NAVIGATION, SITE_TITLE } from "../consts";
 import HeaderLink from "./HeaderLink.astro";
 
 const titleText = `«${SITE_TITLE}»`;
+const navItems = NAVIGATION.filter((item) => item.href !== "/");
 ---
 
 <header class="relative isolate" transition:persist>
@@ -21,14 +22,29 @@ const titleText = `«${SITE_TITLE}»`;
       class="site-title text-black! text-4xl font-bold no-underline"
       aria-label={titleText}
     >
-      <span class="site-title__text" data-text={titleText}>{titleText}</span>
+      <span class="site-title__text" data-text={titleText}>
+        {titleText.slice(0, -1)}<span class="site-title__char">
+          {titleText.slice(-1)}
+          <span class="site-title__cursor-bg" aria-hidden="true"></span>
+          <span class="site-title__cursor-char" aria-hidden="true">{titleText.slice(-1)}</span>
+        </span>
+      </span>
     </a>
-    <div class="flex gap-4">
+    <div class="nav-array">
+      <span class="nav-array__bracket" aria-hidden="true">[</span>
       {
-        NAVIGATION.filter((item) => item.href !== "/").map((item) => (
-          <HeaderLink href={item.href}>{item.label}</HeaderLink>
+        navItems.map((item, i) => (
+          <>
+            <span class="nav-array__quote" aria-hidden="true">"</span>
+            <HeaderLink href={item.href}>{item.label.toLowerCase()}</HeaderLink>
+            <span class="nav-array__quote" aria-hidden="true">"</span>
+            {i < navItems.length - 1 && (
+              <span class="nav-array__comma" aria-hidden="true">, </span>
+            )}
+          </>
         ))
       }
+      <span class="nav-array__bracket" aria-hidden="true">]</span>
     </div>
   </nav>
 </header>
@@ -140,5 +156,83 @@ const titleText = `«${SITE_TITLE}»`;
     50% {
       transform: translate(1px, 0);
     }
+  }
+
+  /* Vim visual-mode cursor — black block inverts to white char */
+  .site-title__char {
+    position: relative;
+    display: inline-block;
+    line-height: 1;
+  }
+
+  .site-title__cursor-bg {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    animation: cursor-blink 1s step-end infinite;
+    pointer-events: none;
+  }
+
+  .site-title__cursor-char {
+    position: absolute;
+    inset: 0;
+    color: #fff;
+    animation: cursor-blink 1s step-end infinite;
+    pointer-events: none;
+  }
+
+  @keyframes cursor-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-title__cursor {
+      animation: none;
+      opacity: 1;
+    }
+  }
+
+  /* Nav array styling */
+  .nav-array {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+      "Liberation Mono", monospace;
+    font-size: 0.95rem;
+    color: #666;
+  }
+
+  .nav-array__bracket,
+  .nav-array__quote,
+  .nav-array__comma {
+    color: #999;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .nav-array :global(a) {
+    color: inherit;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: inherit;
+    transition: color 160ms ease;
+  }
+
+  .nav-array :global(a):hover {
+    color: #000;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .nav-array :global(a[aria-current="page"]) {
+    color: #000;
+    font-weight: 600;
   }
 </style>

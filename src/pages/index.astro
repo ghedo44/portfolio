@@ -11,13 +11,17 @@ import {
   SITE_TITLE,
   SOCIAL_LINKS,
 } from "../consts";
-import projects from "../data/projects";
 import { getPublishedPosts } from "../utils/posts";
+import { getPublishedProjects } from "../utils/projects";
 
 const posts = (await getPublishedPosts()).slice(0, 3);
-const featuredProjects = projects.filter((p) => p.featured).slice(0, 3);
+const featuredProjects = (await getPublishedProjects())
+  .filter((p) => p.data.featured)
+  .slice(0, 3);
 const blogLink =
   NAVIGATION.find((item) => item.href === "/blog/")?.href || "/blog/";
+const projectsLink =
+  NAVIGATION.find((item) => item.href === "/projects/")?.href || "/projects/";
 const githubLink = SOCIAL_LINKS.find((l) => l.label === "GitHub")?.href || "#";
 const linkedinLink =
   SOCIAL_LINKS.find((l) => l.label === "LinkedIn")?.href || "#";
@@ -82,7 +86,15 @@ const linkedinLink =
   {
     featuredProjects.length > 0 && (
       <section class="max-w-3xl mx-auto px-4 py-12 border-t border-gray-100">
-        <h2 class="text-2xl font-bold mb-6">Selected work</h2>
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">Selected work</h2>
+          <a
+            href={projectsLink}
+            class="text-sm text-gray-600 hover:text-black transition-colors"
+          >
+            All projects &rarr;
+          </a>
+        </div>
         <div class="grid gap-6 sm:grid-cols-2">
           {featuredProjects.map((project) => (
             <ProjectCard project={project} />
@@ -123,31 +135,33 @@ const linkedinLink =
           {posts.map((post) => (
             <a
               href={`/blog/${post.id}/`}
-              class="block border border-gray-200 rounded-lg p-5 bg-white/20 backdrop-blur-xs hover:border-gray-300 transition-colors group"
+              class="block border border-gray-200 rounded-lg bg-white/20 backdrop-blur-xs hover:border-gray-300 transition-colors overflow-hidden group"
             >
               {post.data.heroImage && (
-                <div class="mb-4 rounded-lg overflow-hidden">
+                <div class="overflow-hidden">
                   <Image
-                    width={360}
-                    height={180}
+                    width={720}
+                    height={360}
                     src={post.data.heroImage}
                     alt={post.data.heroImageAlt || ""}
-                    class="w-full h-36 object-cover group-hover:opacity-85 transition"
-					transition:name={`post-image-${post.id}`}
+                    class="w-full h-40 object-cover group-hover:opacity-85 transition"
+                    transition:name={`post-image-${post.id}`}
                   />
                 </div>
               )}
-              <h3 class="font-semibold mb-1 group-hover:underline">
-                <span transition:name={`post-title-${post.id}`}>{post.data.title}</span>
-              </h3>
-              <p class="text-sm text-gray-500 mb-2">
-                <span transition:name={`post-date-${post.id}`}>
-                  <FormattedDate date={post.data.pubDate} />
-                </span>
-              </p>
-              <p class="text-sm text-gray-600 line-clamp-2">
-                {post.data.description}
-              </p>
+              <div class="p-5">
+                <h3 class="font-semibold mb-1 group-hover:underline">
+                  <span transition:name={`post-title-${post.id}`}>{post.data.title}</span>
+                </h3>
+                <p class="text-sm text-gray-500 mb-2">
+                  <span transition:name={`post-date-${post.id}`}>
+                    <FormattedDate date={post.data.pubDate} />
+                  </span>
+                </p>
+                <p class="text-sm text-gray-600 line-clamp-2">
+                  {post.data.description}
+                </p>
+              </div>
             </a>
           ))}
         </div>
