@@ -8,7 +8,7 @@ import { getPublishedPosts } from "../../utils/posts";
 
 export async function getStaticPaths({ paginate }: { paginate: Function }) {
 	const posts = await getPublishedPosts();
-	return paginate(posts, { pageSize: 50 });
+	return paginate(posts, { pageSize: 1 });
 }
 
 interface Props {
@@ -30,9 +30,12 @@ const pageTitle = `Blog${page.currentPage > 1 ? ` — Page ${page.currentPage}` 
 					<section>
 						<ul class="space-y-8">
 							{page.data.map((post) => (
-								<li class="border-b border-gray-200 pb-6 last:border-b-0">
+								<li
+									id={`post-${post.id}`}
+									class="border-b border-gray-200 pb-6 last:border-b-0"
+								>
 									<a
-										href={`/blog/${post.id}/`}
+										href={`/blog/${post.id}/?from=1`}
 										class="block group focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg"
 									>
 										{post.data.heroImage && (

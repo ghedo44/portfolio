@@ -13,16 +13,6 @@
     font-family: var(--font-atkinson, system-ui, sans-serif);
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    html {
-      scroll-behavior: smooth;
-    }
-
-    :target {
-      scroll-margin-top: 2rem;
-    }
-  }
-
   body {
     display: flex;
     flex-direction: column;

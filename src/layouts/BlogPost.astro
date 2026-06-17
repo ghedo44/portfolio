@@ -31,7 +31,9 @@ const pageTitle = `${title}`;
 >
   <div class="max-w-3xl mx-auto px-4 py-12 sm:py-16">
     <div class="mb-8">
-      <HeaderLink href="/blog/">&larr; All posts</HeaderLink>
+      <HeaderLink href="/blog/" data-return-link>
+        &larr; All posts
+      </HeaderLink>
     </div>
     <article>
       <header class="mb-8">
@@ -88,7 +90,27 @@ const pageTitle = `${title}`;
       </div>
     </article>
     <div class="mt-12">
-      <HeaderLink href="/blog/">&larr; All posts</HeaderLink>
+      <HeaderLink href="/blog/" data-return-link>
+        &larr; All posts
+      </HeaderLink>
     </div>
   </div>
+
+  <script is:inline>
+    const updateReturnLinks = () => {
+      const from = new URL(window.location.href).searchParams.has("from");
+
+      document.querySelectorAll("[data-return-link]").forEach((link) => {
+        link.onclick = from
+          ? (event) => {
+              event.preventDefault();
+              window.history.back();
+            }
+          : null;
+      });
+    };
+
+    updateReturnLinks();
+    document.addEventListener("astro:page-load", updateReturnLinks);
+  </script>
 </BaseLayout>
