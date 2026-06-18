@@ -14,17 +14,10 @@ const { compact = false } = Astro.props;
   aria-label="Search blog posts"
   data-pagefind-ignore="all"
 >
-  <pagefind-config
-    instance="blog"
-    bundle-path="/pagefind/"
-    faceted
-  ></pagefind-config>
+  <pagefind-config instance="blog" bundle-path="/pagefind/" faceted></pagefind-config>
 
   <div class="blog-search__controls">
-    <pagefind-input
-      instance="blog"
-      placeholder="Search blog posts..."
-    ></pagefind-input>
+    <pagefind-input instance="blog" placeholder="Search blog posts..."></pagefind-input>
     <pagefind-filter-dropdown
       instance="blog"
       filter="tag"
@@ -43,17 +36,17 @@ const { compact = false } = Astro.props;
     ></pagefind-results>
   </div>
 
-  <p id="pagefind-status" class="text-sm text-gray-500 mt-3" role="status">
+  <p class="text-sm text-gray-500 mt-3" data-pagefind-status role="status">
     Search is available after a production build.
   </p>
 </section>
 
 <script is:inline data-astro-rerun>
-  const status = document.querySelector("#pagefind-status");
-
-  if (status && "customElements" in window) {
-    customElements.whenDefined("pagefind-input").then(() => status.remove());
-  }
+  document.querySelectorAll("[data-pagefind-status]").forEach((status) => {
+    if ("customElements" in window) {
+      customElements.whenDefined("pagefind-input").then(() => status.remove());
+    }
+  });
 </script>
 
 <style>
