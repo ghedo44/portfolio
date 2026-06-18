@@ -73,7 +73,7 @@ Add a new `.mdx` file inside `src/content/projects/` or use Pages CMS.
 
 Set the `site` field in `astro.config.mjs` to your production URL. This enables absolute canonical URLs, sitemap, and RSS feed links.
 
-Currently configured: `https://ghedo.me`
+Currently configured: [ghedo.me](https://ghedo.me)
 
 ## Images and alt text
 
