@@ -10,7 +10,7 @@ import { getPublishedPosts } from "../../utils/posts";
 
 export async function getStaticPaths({ paginate }: { paginate: Function }) {
   const posts = await getPublishedPosts();
-  return paginate(posts, { pageSize: 1 });
+  return paginate(posts, { pageSize: 50 });
 }
 
 interface Props {

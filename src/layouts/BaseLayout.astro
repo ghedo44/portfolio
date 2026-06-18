@@ -17,11 +17,9 @@ interface Props {
   publishedTime?: Date;
   modifiedTime?: Date;
   noindex?: boolean;
-  pagefind?: boolean;
 }
 
 const props = Astro.props;
-const pagefind = props.pagefind ?? false;
 ---
 
 <!doctype html>
@@ -46,7 +44,6 @@ const pagefind = props.pagefind ?? false;
     <Header />
     <main
       id="main-content"
-      data-pagefind-body={pagefind ? "" : undefined}
     >
       <slot />
     </main>

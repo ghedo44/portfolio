@@ -8,26 +8,27 @@ const { compact = false } = Astro.props;
 
 <section
   class:list={[
-    "blog-search border border-gray-200 rounded-lg bg-white/70 backdrop-blur-sm p-4",
+    "blog-search bg-white/70 backdrop-blur-sm",
     compact ? "mb-8" : "mb-10",
   ]}
   aria-label="Search blog posts"
   data-pagefind-ignore="all"
 >
-  <pagefind-config instance="blog" bundle-path="/pagefind/" faceted></pagefind-config>
+  <pagefind-config instance="blog" bundle-path="/pagefind/" faceted
+  ></pagefind-config>
 
   <div class="blog-search__controls">
-    <pagefind-input instance="blog" placeholder="Search blog posts..."></pagefind-input>
+    <pagefind-input instance="blog" placeholder="Search blog posts..."
+    ></pagefind-input>
     <pagefind-filter-dropdown
       instance="blog"
       filter="tag"
       label="Tags"
       single-select
-      sort="alphabetical"
-    ></pagefind-filter-dropdown>
+      sort="alphabetical"></pagefind-filter-dropdown>
   </div>
 
-  <div class="blog-search__results">
+  <div class="blog-search__results" data-search-output hidden>
     <pagefind-summary instance="blog"></pagefind-summary>
     <pagefind-results
       instance="blog"
@@ -42,17 +43,64 @@ const { compact = false } = Astro.props;
 </section>
 
 <script is:inline data-astro-rerun>
-  document.querySelectorAll("[data-pagefind-status]").forEach((status) => {
+  const initialiseBlogSearch = (section) => {
+    if (!(section instanceof HTMLElement)) return;
+    if (section.dataset.searchVisibilityInitialised === "true") return;
+    section.dataset.searchVisibilityInitialised = "true";
+    const output = section.querySelector("[data-search-output]");
+    const dropdown = section.querySelector(
+      'pagefind-filter-dropdown[instance="blog"]',
+    );
+    const status = section.querySelector("[data-pagefind-status]");
+    if (!(output instanceof HTMLElement) || !dropdown) return;
+    const updateVisibility = () => {
+      const input = section.querySelector(
+        'pagefind-input[instance="blog"] input.pf-input',
+      );
+      const hasSearchText =
+        input instanceof HTMLInputElement && input.value.trim().length >= 1;
+      const hasSelectedTag = Boolean(
+        dropdown.querySelector('[role="option"][aria-selected="true"]'),
+      );
+      output.hidden = !(hasSearchText || hasSelectedTag);
+    }; // Input events bubble from Pagefind's internal input.
+    section.addEventListener("input", (event) => {
+      if (
+        event.target instanceof HTMLInputElement &&
+        event.target.matches("pagefind-input input.pf-input")
+      ) {
+        updateVisibility();
+      }
+    }); // Pagefind changes aria-selected only when a tag is actually // selected or cleared. Merely opening the dropdown does not show results.
+    const filterObserver = new MutationObserver(() => {
+      requestAnimationFrame(updateVisibility);
+    });
+    filterObserver.observe(dropdown, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["aria-selected"],
+    });
     if ("customElements" in window) {
-      customElements.whenDefined("pagefind-input").then(() => status.remove());
+      customElements.whenDefined("pagefind-input").then(() => {
+        status?.remove();
+        updateVisibility();
+      });
     }
-  });
+    updateVisibility();
+  };
+  document.querySelectorAll(".blog-search").forEach(initialiseBlogSearch);
 </script>
 
 <style>
   .blog-search {
-    --pf-primary: #111827;
+    position: relative;
+    z-index: 50;
+    overflow: visible;
+
+    --pf-primary: var(--color-primary);
     --pf-text: #374151;
+    --pf-outline-focus: var(--color-secondary);
     --pf-muted: #6b7280;
     --pf-border: #e5e7eb;
     --pf-background: #ffffff;
@@ -60,11 +108,15 @@ const { compact = false } = Astro.props;
 
   .blog-search__controls {
     display: grid;
+    align-items: center !important;
     gap: 0.75rem;
   }
 
   .blog-search__results {
     margin-top: 0.75rem;
+  }
+  .blog-search__results[hidden] {
+    display: none;
   }
 
   pagefind-input,
@@ -74,10 +126,22 @@ const { compact = false } = Astro.props;
     display: block;
   }
 
+  pagefind-filter-dropdown {
+    z-index: 20;
+  }
+
   @media (min-width: 640px) {
     .blog-search__controls {
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: start;
+    }
+  }
+
+  @media (max-width: 640px) {
+    :global(.pf-dropdown-menu) {
+      width: auto !important;
+      left: 0 !important;
+      transform: none !important;
     }
   }
 </style>
