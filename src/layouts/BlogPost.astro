@@ -3,11 +3,9 @@ import { Image } from "astro:assets";
 import type { CollectionEntry } from "astro:content";
 import "katex/dist/katex.min.css";
 import BaseLayout from "./BaseLayout.astro";
-import BlogSearch from "../components/BlogSearch.astro";
 import Comments from "../components/Comments.astro";
 import FormattedDate from "../components/FormattedDate.astro";
 import HeaderLink from "../components/HeaderLink.astro";
-import PagefindAssets from "../components/PagefindAssets.astro";
 
 type Props = CollectionEntry<"blog">;
 
@@ -33,11 +31,7 @@ const pageTitle = `${title}`;
   modifiedTime={updatedDate}
   pagefind={true}
 >
-  <PagefindAssets slot="head" />
-
   <div class="max-w-3xl mx-auto px-4 py-12 sm:py-16">
-    <BlogSearch compact={true} />
-
     <div class="mb-8">
       <HeaderLink href="/blog/" data-return-link>
         &larr; All posts
