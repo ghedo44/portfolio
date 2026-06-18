@@ -20,9 +20,11 @@ const {
   data-typing-speed={typingSpeed}
   data-deleting-speed={deletingSpeed}
   data-pause-time={pauseTime}
+  role="text"
   aria-label={words.join(", ")}
 >
-  <span class="typewriter__text" aria-hidden="true"></span>
+  <span class="sr-only">{words.join(", ")}</span>
+  <span class="typewriter__text" aria-hidden="true">{words[0]}</span>
   <span class="typewriter__cursor" aria-hidden="true"></span>
 </type-writer>
 
