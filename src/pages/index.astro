@@ -34,7 +34,7 @@ const linkedinLink =
   <section class="max-w-3xl mx-auto px-4 py-16 sm:py-24">
     <h1 class="text-5xl font-bold mb-4 tracking-tight">ghedo</h1>
     <p class="text-xl text-gray-600 mb-8 leading-relaxed min-h-17">
-      Aerospace engineer and Space Engineering master&apos;student <br
+      Aerospace engineer and Space Engineering master&apos;s student <br
         class="hidden sm:inline"
       />
       focused on
@@ -84,13 +84,13 @@ const linkedinLink =
         >.
       </p>
       <p>
-        Passionate about space technologies, spacecraft design, and advancing
-        humanity's presence in space. This site showcases my projects, research,
-        and insights from my journey in aerospace engineering.
+        I enjoy approaching engineering problems through modelling, simulation
+        and software development. This website documents selected projects and
+        technical notes from my studies.
       </p>
       <p>
-        Outside of engineering, I stay active playing hockey &mdash; sports and
-        teamwork are a big part of how I spend my time.
+        Outside engineering, I play hockey and enjoy working in team-oriented
+        environments.
       </p>
     </div>
   </section>
@@ -103,10 +103,7 @@ const linkedinLink =
         Object.entries(TOOLS_AND_TECHNOLOGIES).map(([_, data]) => (
           <div>
             {" "}
-            <h3 class="font-semibold mb-3">
-              {" "}
-              {data.label}{" "}
-            </h3>{" "}
+            <h3 class="font-semibold mb-3"> {data.label} </h3>{" "}
             <ul class="flex flex-wrap gap-2">
               {" "}
               {data.tools.map((tool) => (
@@ -126,7 +123,7 @@ const linkedinLink =
   {
     featuredProjects.length > 0 && (
       <section class="max-w-3xl mx-auto px-4 py-12 border-t border-gray-100">
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex justify-between items-center mb-2">
           <h2 class="text-2xl font-bold">Selected work</h2>
           <a
             href={projectsLink}
@@ -135,6 +132,10 @@ const linkedinLink =
             All projects &rarr;
           </a>
         </div>
+        <p class="text-gray-700 mb-6">
+          Selected academic and personal work involving engineering, simulation,
+          software and design.
+        </p>
         <div class="grid gap-6 sm:grid-cols-2">
           {featuredProjects.map((project) => (
             <ProjectCard project={project} />
@@ -160,7 +161,7 @@ const linkedinLink =
 
   <!-- Latest posts -->
   <section class="max-w-3xl mx-auto px-4 py-12 border-t border-gray-100">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex justify-between items-center mb-2">
       <h2 class="text-2xl font-bold">Latest posts</h2>
       <a
         href={blogLink}
@@ -169,6 +170,9 @@ const linkedinLink =
         All posts &rarr;
       </a>
     </div>
+    <p class="text-gray-700 mb-6">
+      Notes on engineering, software and subjects I am currently studying.
+    </p>
     {
       posts.length > 0 ? (
         <div class="grid gap-6 sm:grid-cols-2">
