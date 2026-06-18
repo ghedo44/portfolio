@@ -1,9 +1,26 @@
 ---
+import { getPublishedPosts } from "../utils/posts";
+
 interface Props {
   compact?: boolean;
 }
 
 const { compact = false } = Astro.props;
+
+const posts = await getPublishedPosts();
+const tagCounts = new Map<string, number>();
+
+for (const post of posts) {
+  for (const rawTag of post.data.tags ?? []) {
+    const tag = rawTag.trim();
+
+    if (tag) {
+      tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+    }
+  }
+}
+
+const tags = [...tagCounts.entries()].sort(([a], [b]) => a.localeCompare(b));
 ---
 
 <section
@@ -11,123 +28,333 @@ const { compact = false } = Astro.props;
     "blog-search bg-white/70 backdrop-blur-sm",
     compact ? "mb-8" : "mb-10",
   ]}
+  data-blog-search
+  data-result-limit={compact ? 5 : 20}
   aria-label="Search blog posts"
   data-pagefind-ignore="all"
 >
-  <pagefind-config instance="blog" bundle-path="/pagefind/" faceted
-  ></pagefind-config>
-
   <div class="blog-search__controls">
-    <pagefind-input instance="blog" placeholder="Search blog posts..."
-    ></pagefind-input>
-    <pagefind-filter-dropdown
-      instance="blog"
-      filter="tag"
-      label="Tags"
-      single-select
-      sort="alphabetical"></pagefind-filter-dropdown>
+    <label class="sr-only" for="blog-search-input"> Search blog posts </label>
+
+    <input
+      id="blog-search-input"
+      class="blog-search__input"
+      type="search"
+      placeholder="Search blog posts..."
+      autocomplete="off"
+      data-blog-search-input
+    />
+
+    <label class="sr-only" for="blog-tag-filter"> Filter by tag </label>
+
+    <select
+      id="blog-tag-filter"
+      class="blog-search__select"
+      data-blog-search-tag
+    >
+      <option value="">All tags</option>
+
+      {
+        tags.map(([tag, count]) => (
+          <option value={tag}>
+            {tag} ({count})
+          </option>
+        ))
+      }
+    </select>
   </div>
 
-  <div class="blog-search__results" data-search-output hidden>
-    <pagefind-summary instance="blog"></pagefind-summary>
-    <pagefind-results
-      instance="blog"
-      hide-sub-results
-      max-results={compact ? 5 : 20}
-    ></pagefind-results>
-  </div>
-
-  <p class="text-sm text-gray-500 mt-3" data-pagefind-status role="status">
-    Search is available after a production build.
+  <p
+    class="blog-search__status"
+    data-blog-search-status
+    aria-live="polite"
+    hidden
+  >
   </p>
+
+  <ol class="blog-search__results" data-blog-search-results hidden></ol>
 </section>
 
 <script is:inline data-astro-rerun>
-  const initialiseBlogSearch = (section) => {
-    if (!(section instanceof HTMLElement)) return;
-    if (section.dataset.searchVisibilityInitialised === "true") return;
-    section.dataset.searchVisibilityInitialised = "true";
-    const output = section.querySelector("[data-search-output]");
-    const dropdown = section.querySelector(
-      'pagefind-filter-dropdown[instance="blog"]',
-    );
-    const status = section.querySelector("[data-pagefind-status]");
-    if (!(output instanceof HTMLElement) || !dropdown) return;
-    const updateVisibility = () => {
-      const input = section.querySelector(
-        'pagefind-input[instance="blog"] input.pf-input',
-      );
-      const hasSearchText =
-        input instanceof HTMLInputElement && input.value.trim().length >= 1;
-      const hasSelectedTag = Boolean(
-        dropdown.querySelector('[role="option"][aria-selected="true"]'),
-      );
-      output.hidden = !(hasSearchText || hasSelectedTag);
-    }; // Input events bubble from Pagefind's internal input.
-    section.addEventListener("input", (event) => {
+  (() => {
+    const initialiseBlogSearch = (root) => {
+      if (!(root instanceof HTMLElement)) return;
+
+      const input = root.querySelector("[data-blog-search-input]");
+      const tagSelect = root.querySelector("[data-blog-search-tag]");
+      const status = root.querySelector("[data-blog-search-status]");
+      const results = root.querySelector("[data-blog-search-results]");
+
       if (
-        event.target instanceof HTMLInputElement &&
-        event.target.matches("pagefind-input input.pf-input")
+        !(input instanceof HTMLInputElement) ||
+        !(tagSelect instanceof HTMLSelectElement) ||
+        !(status instanceof HTMLElement) ||
+        !(results instanceof HTMLOListElement)
       ) {
-        updateVisibility();
+        return;
       }
-    }); // Pagefind changes aria-selected only when a tag is actually // selected or cleared. Merely opening the dropdown does not show results.
-    const filterObserver = new MutationObserver(() => {
-      requestAnimationFrame(updateVisibility);
-    });
-    filterObserver.observe(dropdown, {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ["aria-selected"],
-    });
-    if ("customElements" in window) {
-      customElements.whenDefined("pagefind-input").then(() => {
-        status?.remove();
-        updateVisibility();
-      });
-    }
-    updateVisibility();
-  };
-  document.querySelectorAll(".blog-search").forEach(initialiseBlogSearch);
+
+      root.__blogSearchController?.abort();
+
+      const controller = new AbortController();
+      root.__blogSearchController = controller;
+
+      const { signal } = controller;
+      const resultLimit = Number(root.dataset.resultLimit) || 20;
+
+      let debounceTimer;
+      let activeRequest = 0;
+
+      const loadPagefind = async () => {
+        if (!window.__blogPagefindPromise) {
+          window.__blogPagefindPromise = import("/pagefind/pagefind.js")
+            .then(async (pagefind) => {
+              await pagefind.init();
+              return pagefind;
+            })
+            .catch((error) => {
+              delete window.__blogPagefindPromise;
+              throw error;
+            });
+        }
+
+        return window.__blogPagefindPromise;
+      };
+
+      const clearResults = () => {
+        activeRequest += 1;
+        clearTimeout(debounceTimer);
+
+        results.replaceChildren();
+        results.hidden = true;
+
+        status.textContent = "";
+        status.hidden = true;
+
+        root.removeAttribute("aria-busy");
+      };
+
+      const createResult = (result) => {
+        const item = document.createElement("li");
+        item.className = "blog-search__result";
+
+        const link = document.createElement("a");
+        link.className = "blog-search__result-link";
+
+        const resultUrl = new URL(result.url, window.location.origin);
+        resultUrl.searchParams.set("from", "1");
+
+        link.href = resultUrl.pathname + resultUrl.search + resultUrl.hash;
+
+        const title = document.createElement("h3");
+        title.className = "blog-search__result-title";
+        title.textContent = result.meta?.title || result.url;
+
+        const excerpt = document.createElement("p");
+        excerpt.className = "blog-search__result-excerpt";
+        excerpt.innerHTML = result.excerpt || "";
+
+        link.append(title, excerpt);
+        item.append(link);
+
+        return item;
+      };
+
+      const runSearch = async () => {
+        const term = input.value.trim();
+        const selectedTag = tagSelect.value;
+
+        if (term.length < 1 && !selectedTag) {
+          clearResults();
+          return;
+        }
+
+        const request = ++activeRequest;
+
+        root.setAttribute("aria-busy", "true");
+        status.textContent = "Searching…";
+        status.hidden = false;
+
+        try {
+          const pagefind = await loadPagefind();
+
+          const options = selectedTag
+            ? {
+                filters: {
+                  tag: selectedTag,
+                },
+              }
+            : {};
+
+          const search = await pagefind.search(
+            term.length >= 1 ? term : null,
+            options,
+          );
+
+          if (request !== activeRequest) return;
+
+          const loadedResults = await Promise.all(
+            search.results.slice(0, resultLimit).map((result) => result.data()),
+          );
+
+          if (request !== activeRequest) return;
+
+          const fragment = document.createDocumentFragment();
+
+          for (const result of loadedResults) {
+            fragment.append(createResult(result));
+          }
+
+          results.replaceChildren(fragment);
+          results.hidden = loadedResults.length === 0;
+
+          const total = search.results.length;
+
+          if (total === 0) {
+            status.textContent = "No posts found.";
+          } else if (total > resultLimit) {
+            status.textContent = `${total} posts found. Showing the first ${resultLimit}.`;
+          } else {
+            status.textContent = `${total} post${total === 1 ? "" : "s"} found.`;
+          }
+        } catch (error) {
+          console.error("Pagefind search failed:", error);
+
+          results.replaceChildren();
+          results.hidden = true;
+          status.textContent = "Search is available after a production build.";
+        } finally {
+          if (request === activeRequest) {
+            root.removeAttribute("aria-busy");
+          }
+        }
+      };
+
+      const scheduleSearch = () => {
+        clearTimeout(debounceTimer);
+
+        if (input.value.trim().length < 1 && !tagSelect.value) {
+          clearResults();
+          return;
+        }
+
+        debounceTimer = setTimeout(() => {
+          void runSearch();
+        }, 180);
+      };
+
+      input.addEventListener("input", scheduleSearch, { signal });
+
+      tagSelect.addEventListener(
+        "change",
+        () => {
+          clearTimeout(debounceTimer);
+          void runSearch();
+        },
+        { signal },
+      );
+
+      input.addEventListener(
+        "focus",
+        () => {
+          void loadPagefind();
+        },
+        { signal, once: true },
+      );
+
+      if (input.value.trim().length >= 1 || tagSelect.value) {
+        void runSearch();
+      }
+    };
+
+    document
+      .querySelectorAll("[data-blog-search]")
+      .forEach(initialiseBlogSearch);
+  })();
 </script>
 
 <style>
   .blog-search {
     position: relative;
-    z-index: 50;
-    overflow: visible;
-
-    --pf-primary: var(--color-primary);
-    --pf-text: #374151;
-    --pf-outline-focus: var(--color-secondary);
-    --pf-muted: #6b7280;
-    --pf-border: #e5e7eb;
-    --pf-background: #ffffff;
+    z-index: 20;
   }
 
   .blog-search__controls {
     display: grid;
-    align-items: center !important;
     gap: 0.75rem;
   }
 
-  .blog-search__results {
-    margin-top: 0.75rem;
+  .blog-search__input,
+  .blog-search__select {
+    width: 100%;
+    min-width: 0;
+    height: 2.5rem;
+    padding: 0 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    background: white;
+    color: #374151;
+    font: inherit;
   }
-  .blog-search__results[hidden] {
+
+  .blog-search__input:focus,
+  .blog-search__select:focus {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 0px;
+  }
+
+  .blog-search__status {
+    margin-top: 0.75rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  .blog-search__results {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .blog-search__results[hidden],
+  .blog-search__status[hidden] {
     display: none;
   }
 
-  pagefind-input,
-  pagefind-filter-dropdown,
-  pagefind-summary,
-  pagefind-results {
-    display: block;
+  .blog-search :global(.blog-search__result) {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.75rem;
   }
 
-  pagefind-filter-dropdown {
-    z-index: 20;
+  .blog-search :global(.blog-search__result-link) {
+    display: block;
+    border-radius: 0.375rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .blog-search
+    :global(.blog-search__result-link:hover)
+    :global(.blog-search__result-title) {
+    text-decoration: underline;
+  }
+
+  .blog-search :global(.blog-search__result-title) {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .blog-search :global(.blog-search__result-excerpt) {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .blog-search :global(mark) {
+    background: #fef3c7;
   }
 
   @media (min-width: 640px) {
@@ -135,13 +362,38 @@ const { compact = false } = Astro.props;
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: start;
     }
+
+    .blog-search__select {
+      width: auto;
+      min-width: 10rem;
+    }
   }
 
-  @media (max-width: 640px) {
-    :global(.pf-dropdown-menu) {
-      width: auto !important;
-      left: 0 !important;
-      transform: none !important;
-    }
+  .blog-search__input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-left: 0.5rem;
+
+    background-color: var(--color-secondary);
+
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 5l10 10M15 5L5 15' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 5l10 10M15 5L5 15' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+
+    cursor: pointer;
+    opacity: 0.65;
+  }
+
+  .blog-search__input::-webkit-search-cancel-button:hover {
+    opacity: 1;
   }
 </style>
