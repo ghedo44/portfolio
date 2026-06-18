@@ -17,9 +17,11 @@ interface Props {
   publishedTime?: Date;
   modifiedTime?: Date;
   noindex?: boolean;
+  pagefind?: boolean;
 }
 
 const props = Astro.props;
+const pagefind = props.pagefind ?? true;
 ---
 
 <!doctype html>
@@ -35,13 +37,17 @@ const props = Astro.props;
       modifiedTime={props.modifiedTime}
       noindex={props.noindex}
     />
+    <slot name="head" />
   </head>
   <body class="bg-white text-gray-900">
     <ClientRouter />
     <a href="#main-content" class="skip-link">Skip to content</a>
     <DotBackground />
     <Header />
-    <main id="main-content">
+    <main
+      id="main-content"
+      data-pagefind-body={pagefind ? "" : undefined}
+    >
       <slot />
     </main>
     <Footer />
