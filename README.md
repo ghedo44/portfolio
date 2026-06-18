@@ -25,7 +25,7 @@ pnpm build     # Build the site and generate the blog search index
 pnpm preview   # Preview the production build
 ```
 
-Pagefind indexes only published blog posts after Astro builds. Search and tag filtering are available on the blog index and individual posts in production, or after running `pnpm build` followed by `pnpm preview`. The generated search interface is not available during `pnpm dev`.
+Pagefind indexes only published blog posts after Astro builds. Search and tag filtering are shown at the top of the paginated blog index pages in production, or after running `pnpm build` followed by `pnpm preview`. The generated search interface is not available during `pnpm dev`.
 
 ## Project structure
 
