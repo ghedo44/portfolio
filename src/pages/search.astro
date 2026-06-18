@@ -1,0 +1,65 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "Search";
+const description = "Search blog posts, projects and pages on ghedo.";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  noindex={true}
+  pagefind={false}
+>
+  <Fragment slot="head">
+    <link href="/pagefind/pagefind-component-ui.css" rel="stylesheet" />
+    <script
+      is:inline
+      data-astro-rerun
+      src="/pagefind/pagefind-component-ui.js"
+      type="module"
+    ></script>
+  </Fragment>
+
+  <section class="max-w-3xl mx-auto px-4 py-16 sm:py-24">
+    <header class="mb-10">
+      <h1 class="text-4xl font-bold tracking-tight mb-3">Search</h1>
+      <p class="text-gray-600 leading-relaxed">
+        Search blog posts, projects and the rest of the site.
+      </p>
+    </header>
+
+    <div class="pagefind-search" data-pagefind-ignore="all">
+      <pagefind-input placeholder="Search the site..."></pagefind-input>
+      <pagefind-summary></pagefind-summary>
+      <pagefind-results></pagefind-results>
+
+      <p id="pagefind-status" class="text-sm text-gray-500 mt-4" role="status">
+        Search is generated during the production build. For local testing, run
+        <code>pnpm build</code> and then <code>pnpm preview</code>.
+      </p>
+    </div>
+  </section>
+
+  <script is:inline data-astro-rerun>
+    const status = document.querySelector("#pagefind-status");
+
+    if (status && "customElements" in window) {
+      customElements.whenDefined("pagefind-input").then(() => status.remove());
+    }
+  </script>
+</BaseLayout>
+
+<style>
+  .pagefind-search {
+    min-height: 20rem;
+  }
+
+  .pagefind-search code {
+    border: 1px solid rgb(229 231 235);
+    border-radius: 0.25rem;
+    background: rgb(249 250 251);
+    padding: 0.1rem 0.3rem;
+    color: rgb(31 41 55);
+  }
+</style>
