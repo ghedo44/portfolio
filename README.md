@@ -8,7 +8,7 @@ Personal portfolio — aerospace projects and technical notes about space engine
 * [Tailwind CSS](https://tailwindcss.com) — utility-first CSS framework
 * [Giscus](https://giscus.app/) — comments powered by GitHub Discussions
 * [Pages CMS](https://pagescms.org/) — Git-based content management
-* [Pagefind](https://pagefind.app/) — static site search
+* [Pagefind](https://pagefind.app/) — static blog search and tag filtering
 
 ## Requirements
 
@@ -21,11 +21,11 @@ Personal portfolio — aerospace projects and technical notes about space engine
 pnpm install
 pnpm dev       # Start dev server
 pnpm check     # Type-check the project
-pnpm build     # Build the site and generate the search index
+pnpm build     # Build the site and generate the blog search index
 pnpm preview   # Preview the production build
 ```
 
-Pagefind indexes the generated HTML after Astro builds. Search is therefore available in production and when running `pnpm build` followed by `pnpm preview`, but not during `pnpm dev`.
+Pagefind indexes only published blog posts after Astro builds. Search and tag filtering are available on the blog index and individual posts in production, or after running `pnpm build` followed by `pnpm preview`. The generated search interface is not available during `pnpm dev`.
 
 ## Project structure
 
