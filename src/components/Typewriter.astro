@@ -14,7 +14,7 @@ const {
 } = Astro.props;
 ---
 
-<span
+<type-writer
   class="typewriter"
   data-words={JSON.stringify(words)}
   data-typing-speed={typingSpeed}
@@ -24,62 +24,90 @@ const {
 >
   <span class="typewriter__text" aria-hidden="true"></span>
   <span class="typewriter__cursor" aria-hidden="true"></span>
-</span>
+</type-writer>
 
 <script>
-  const typewriters = document.querySelectorAll<HTMLElement>(".typewriter");
+  class TypeWriter extends HTMLElement {
+    private timeoutId?: number;
 
-  typewriters.forEach((element) => {
-    if (element.dataset.initialized) return;
-    element.dataset.initialized = "true";
+    connectedCallback() {
+      this.stop();
 
-    const textElement =
-      element.querySelector<HTMLElement>(".typewriter__text");
+      const textElement = this.querySelector<HTMLElement>(
+        ".typewriter__text"
+      );
 
-    if (!textElement) return;
+      if (!textElement) return;
 
-    const words: string[] = JSON.parse(element.dataset.words ?? "[]");
-    const typingSpeed = Number(element.dataset.typingSpeed ?? 80);
-    const deletingSpeed = Number(element.dataset.deletingSpeed ?? 45);
-    const pauseTime = Number(element.dataset.pauseTime ?? 1600);
+      let words: string[];
 
-    if (!words.length) return;
-
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-
-    if (reduceMotion) {
-      textElement.textContent = words[0];
-      return;
-    }
-
-    let wordIndex = 0;
-    let characterIndex = 0;
-    let deleting = false;
-
-    const animate = () => {
-      const currentWord = words[wordIndex];
-
-      characterIndex += deleting ? -1 : 1;
-      textElement.textContent = currentWord.slice(0, characterIndex);
-
-      let delay = deleting ? deletingSpeed : typingSpeed;
-
-      if (!deleting && characterIndex === currentWord.length) {
-        deleting = true;
-        delay = pauseTime;
-      } else if (deleting && characterIndex === 0) {
-        deleting = false;
-        wordIndex = (wordIndex + 1) % words.length;
-        delay = 350;
+      try {
+        words = JSON.parse(this.dataset.words ?? "[]");
+      } catch {
+        words = [];
       }
 
-      window.setTimeout(animate, delay);
-    };
+      if (!words.length) return;
 
-    animate();
-  });
+      const typingSpeed = Number(this.dataset.typingSpeed ?? 80);
+      const deletingSpeed = Number(this.dataset.deletingSpeed ?? 45);
+      const pauseTime = Number(this.dataset.pauseTime ?? 1600);
+
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+      if (reduceMotion) {
+        textElement.textContent = words[0];
+        return;
+      }
+
+      let wordIndex = 0;
+      let characterIndex = 0;
+      let deleting = false;
+
+      textElement.textContent = "";
+
+      const animate = () => {
+        if (!this.isConnected) return;
+
+        const currentWord = words[wordIndex];
+
+        characterIndex += deleting ? -1 : 1;
+        textElement.textContent = currentWord.slice(0, characterIndex);
+
+        let delay = deleting ? deletingSpeed : typingSpeed;
+
+        if (!deleting && characterIndex === currentWord.length) {
+          deleting = true;
+          delay = pauseTime;
+        } else if (deleting && characterIndex === 0) {
+          deleting = false;
+          wordIndex = (wordIndex + 1) % words.length;
+          delay = 350;
+        }
+
+        this.timeoutId = window.setTimeout(animate, delay);
+      };
+
+      animate();
+    }
+
+    disconnectedCallback() {
+      this.stop();
+    }
+
+    private stop() {
+      if (this.timeoutId !== undefined) {
+        window.clearTimeout(this.timeoutId);
+        this.timeoutId = undefined;
+      }
+    }
+  }
+
+  if (!customElements.get("type-writer")) {
+    customElements.define("type-writer", TypeWriter);
+  }
 </script>
 
 <style>
