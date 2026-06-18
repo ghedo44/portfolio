@@ -1,18 +1,20 @@
 ---
 import { Image } from "astro:assets";
 import type { Page } from "astro";
+import BlogSearch from "../../components/BlogSearch.astro";
 import FormattedDate from "../../components/FormattedDate.astro";
+import PagefindAssets from "../../components/PagefindAssets.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { SITE_DESCRIPTION } from "../../consts";
 import { getPublishedPosts } from "../../utils/posts";
 
 export async function getStaticPaths({ paginate }: { paginate: Function }) {
-	const posts = await getPublishedPosts();
-	return paginate(posts, { pageSize: 1 });
+  const posts = await getPublishedPosts();
+  return paginate(posts, { pageSize: 1 });
 }
 
 interface Props {
-	page: Page;
+  page: Page;
 }
 
 const { page } = Astro.props;
@@ -20,123 +22,117 @@ const pageTitle = `Blog${page.currentPage > 1 ? ` — Page ${page.currentPage}` 
 ---
 
 <BaseLayout title={pageTitle} description={SITE_DESCRIPTION}>
-	<div class="max-w-xl mx-auto px-4 py-12 sm:py-16">
-		<h1 class="text-3xl font-bold mb-8">Blog</h1>
-		{
-			page.data.length === 0 ? (
-				<p class="text-gray-500">No posts yet. Check back soon.</p>
-			) : (
-				<>
-					<section>
-						<ul class="space-y-8">
-							{page.data.map((post) => (
-								<li
-									id={`post-${post.id}`}
-									class="border-b border-gray-200 pb-6 last:border-b-0"
-								>
-									<a
-										href={`/blog/${post.id}/?from=1`}
-										class="block group focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg"
-									>
-										{post.data.heroImage && (
-											<div
-												class="mb-4 rounded-lg overflow-hidden"
-												transition:name={`post-image-${post.id}`}
-											>
-												<Image
-													width={720}
-													height={360}
-													src={post.data.heroImage}
-													alt={
-														post.data.heroImageAlt || ""
-													}
-													class="w-full h-48 object-cover group-hover:opacity-85 transition"
-													loading="lazy"
-												/>
-											</div>
-										)}
-										<h2 class="text-xl font-semibold mb-2 group-hover:underline">
-											<span
-												transition:name={`post-title-${post.id}`}
-											>
-												{post.data.title}
-											</span>
-										</h2>
-										<p class="text-gray-600 text-sm mb-2">
-											{post.data.description}
-										</p>
-										<p class="text-gray-500 text-sm">
-											<span
-												transition:name={`post-date-${post.id}`}
-											>
-												<FormattedDate
-													date={post.data.pubDate}
-												/>
-											</span>
-											{post.data.updatedDate && (
-												<span class="italic ml-2">
-													— Updated{" "}
-													<span
-														transition:name={`post-updated-${post.id}`}
-													>
-														<FormattedDate
-															date={
-																post.data
-																	.updatedDate
-															}
-														/>
-													</span>
-												</span>
-											)}
-										</p>
-										{post.data.tags?.length > 0 && (
-											<div class="flex flex-wrap gap-1.5 mt-3">
-												{post.data.tags.map((tag: string) => (
-													<span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full" transition:name={`post-tag-${post.id}-${tag}`}>
-														{tag}
-													</span>
-												))}
-											</div>
-										)}
-									</a>
-								</li>
-							))}
-						</ul>
-					</section>
+  <PagefindAssets slot="head" />
 
-					{page.lastPage > 1 && (
-						<nav class="flex justify-between items-center mt-12 pt-6 border-t border-gray-200" aria-label="Pagination">
-							{
-								page.url.prev ? (
-									<a
-										href={page.url.prev}
-										class="text-sm font-medium text-gray-700 hover:text-black transition"
-									>
-										← Newer posts
-									</a>
-								) : (
-									<span />
-								)
-							}
-							<span class="text-sm text-gray-500">
-								{page.currentPage} / {page.lastPage}
-							</span>
-							{
-								page.url.next ? (
-									<a
-										href={page.url.next}
-										class="text-sm font-medium text-gray-700 hover:text-black transition"
-									>
-										Older posts →
-									</a>
-								) : (
-									<span />
-								)
-							}
-						</nav>
-					)}
-				</>
-			)
-		}
-	</div>
+  <div class="max-w-xl mx-auto px-4 py-12 sm:py-16">
+    <h1 class="text-3xl font-bold mb-8">Blog</h1>
+    <BlogSearch />
+
+    {
+      page.data.length === 0 ? (
+        <p class="text-gray-500">No posts yet. Check back soon.</p>
+      ) : (
+        <>
+          <section aria-labelledby="all-posts-heading">
+            <h2 id="all-posts-heading" class="text-xl font-semibold mb-6">
+              All posts
+            </h2>
+            <ul class="space-y-8">
+              {page.data.map((post) => (
+                <li
+                  id={`post-${post.id}`}
+                  class="border-b border-gray-200 pb-6 last:border-b-0"
+                >
+                  <a
+                    href={`/blog/${post.id}/?from=1`}
+                    class="block group focus-visible:outline-2 focus-visible:outline-offset-2 rounded-lg"
+                  >
+                    {post.data.heroImage && (
+                      <div
+                        class="mb-4 rounded-lg overflow-hidden"
+                        transition:name={`post-image-${post.id}`}
+                      >
+                        <Image
+                          width={720}
+                          height={360}
+                          src={post.data.heroImage}
+                          alt={post.data.heroImageAlt || ""}
+                          class="w-full h-48 object-cover group-hover:opacity-85 transition"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+                    <h3 class="text-xl font-semibold mb-2 group-hover:underline">
+                      <span transition:name={`post-title-${post.id}`}>
+                        {post.data.title}
+                      </span>
+                    </h3>
+                    <p class="text-gray-600 text-sm mb-2">
+                      {post.data.description}
+                    </p>
+                    <p class="text-gray-500 text-sm">
+                      <span transition:name={`post-date-${post.id}`}>
+                        <FormattedDate date={post.data.pubDate} />
+                      </span>
+                      {post.data.updatedDate && (
+                        <span class="italic ml-2">
+                          — Updated{" "}
+                          <span transition:name={`post-updated-${post.id}`}>
+                            <FormattedDate date={post.data.updatedDate} />
+                          </span>
+                        </span>
+                      )}
+                    </p>
+                    {post.data.tags?.length > 0 && (
+                      <div class="flex flex-wrap gap-1.5 mt-3">
+                        {post.data.tags.map((tag: string) => (
+                          <span
+                            class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full"
+                            transition:name={`post-tag-${post.id}-${tag}`}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {page.lastPage > 1 && (
+            <nav
+              class="flex justify-between items-center mt-12 pt-6 border-t border-gray-200"
+              aria-label="Pagination"
+            >
+              {page.url.prev ? (
+                <a
+                  href={page.url.prev}
+                  class="text-sm font-medium text-gray-700 hover:text-black transition"
+                >
+                  ← Newer posts
+                </a>
+              ) : (
+                <span />
+              )}
+              <span class="text-sm text-gray-500">
+                {page.currentPage} / {page.lastPage}
+              </span>
+              {page.url.next ? (
+                <a
+                  href={page.url.next}
+                  class="text-sm font-medium text-gray-700 hover:text-black transition"
+                >
+                  Older posts →
+                </a>
+              ) : (
+                <span />
+              )}
+            </nav>
+          )}
+        </>
+      )
+    }
+  </div>
 </BaseLayout>
