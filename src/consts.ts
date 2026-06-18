@@ -31,11 +31,41 @@ export const SOCIAL_LINKS = [
 ] as const;
 
 export const AREAS_OF_INTEREST = [
-  "Aerospace engineering",
-  "Space engineering",
   "Spacecraft design",
-  "Coding",
+  "Software development",
   "Space technologies",
-  "Technical writing",
-  "Teamwork and sport",
+  "Orbital mechanics",
+  "Space systems engineering",
 ] as const;
+
+export const TOOLS_AND_TECHNOLOGIES = {
+  engineering: {
+    label: "Engineering software",
+    tools: [
+      "SolidWorks",
+      "Solid Edge",
+      "MATLAB",
+      "Simulink",
+    ],
+  },
+  programming: {
+    label: "Programming languages",
+    tools: [
+      "C",
+      "C++",
+      "C#",
+      "Python",
+      "TypeScript",
+    ],
+  },
+  web: {
+    label: "Web technologies",
+    tools: [
+      "Astro",
+      "Angular",
+      "Next.js",
+      "React",
+      "Tailwind",
+    ],
+  },
+} as const;

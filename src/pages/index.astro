@@ -3,6 +3,7 @@ import { Image } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import FormattedDate from "../components/FormattedDate.astro";
 import ProjectCard from "../components/ProjectCard.astro";
+import Typewriter from "../components/Typewriter.astro";
 import SocialLinks from "../components/SocialLinks.astro";
 import {
   AREAS_OF_INTEREST,
@@ -10,6 +11,7 @@ import {
   SITE_DESCRIPTION,
   SITE_TITLE,
   SOCIAL_LINKS,
+  TOOLS_AND_TECHNOLOGIES,
 } from "../consts";
 import { getPublishedPosts } from "../utils/posts";
 import { getPublishedProjects } from "../utils/projects";
@@ -31,9 +33,14 @@ const linkedinLink =
   <!-- Hero -->
   <section class="max-w-3xl mx-auto px-4 py-16 sm:py-24">
     <h1 class="text-5xl font-bold mb-4 tracking-tight">ghedo</h1>
-    <p class="text-xl text-gray-600 mb-8 leading-relaxed">
-      Aerospace engineer and Space Engineering student focused on spacecraft,
-      space technologies and technical exploration.
+    <p class="text-xl text-gray-600 mb-8 leading-relaxed min-h-17">
+      Aerospace engineer and Space Engineering master&apos;student <br
+        class="hidden sm:inline"
+      />
+      focused on
+      <Typewriter
+        words={["space systems.", "software.", "spacecraft design."]}
+      />
     </p>
     <div class="flex flex-wrap gap-3">
       <a
@@ -68,7 +75,13 @@ const linkedinLink =
       <p>
         I graduated with a degree in <strong>Aerospace Engineering</strong>
         in March 2026 and am now pursuing a Master's in
-        <strong>Space Engineering</strong> at Politecnico di Milano.
+        <strong>Space Engineering</strong> at <a
+          href="https://www.polimi.it/en"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-(--color-secondary) hover:underline"
+          >Politecnico di Milano</a
+        >.
       </p>
       <p>
         Passionate about space technologies, spacecraft design, and advancing
@@ -79,6 +92,33 @@ const linkedinLink =
         Outside of engineering, I stay active playing hockey &mdash; sports and
         teamwork are a big part of how I spend my time.
       </p>
+    </div>
+  </section>
+
+  <!-- Tools & Technologies -->
+  <section class="max-w-3xl mx-auto px-4 py-12 border-t border-gray-100">
+    <h2 class="text-2xl font-bold tracking-tight mb-6">Tools & Technologies</h2>
+    <div class="grid gap-4 md:grid-cols-3">
+      {
+        Object.entries(TOOLS_AND_TECHNOLOGIES).map(([_, data]) => (
+          <div>
+            {" "}
+            <h3 class="font-semibold mb-3">
+              {" "}
+              {data.label}{" "}
+            </h3>{" "}
+            <ul class="flex flex-wrap gap-2">
+              {" "}
+              {data.tools.map((tool) => (
+                <li class="rounded-full border border-gray-200 px-3 py-1 text-sm text-gray-600 bg-white/20 backdrop-blur-xs">
+                  {" "}
+                  {tool}{" "}
+                </li>
+              ))}{" "}
+            </ul>{" "}
+          </div>
+        ))
+      }
     </div>
   </section>
 
@@ -151,7 +191,9 @@ const linkedinLink =
               )}
               <div class="p-5">
                 <h3 class="font-semibold mb-1 group-hover:underline">
-                  <span transition:name={`post-title-${post.id}`}>{post.data.title}</span>
+                  <span transition:name={`post-title-${post.id}`}>
+                    {post.data.title}
+                  </span>
                 </h3>
                 <p class="text-sm text-gray-500 mb-2">
                   <span transition:name={`post-date-${post.id}`}>

@@ -1,0 +1,111 @@
+---
+interface Props {
+  words: string[];
+  typingSpeed?: number;
+  deletingSpeed?: number;
+  pauseTime?: number;
+}
+
+const {
+  words,
+  typingSpeed = 80,
+  deletingSpeed = 45,
+  pauseTime = 1600,
+} = Astro.props;
+---
+
+<span
+  class="typewriter"
+  data-words={JSON.stringify(words)}
+  data-typing-speed={typingSpeed}
+  data-deleting-speed={deletingSpeed}
+  data-pause-time={pauseTime}
+  aria-label={words.join(", ")}
+>
+  <span class="typewriter__text" aria-hidden="true"></span>
+  <span class="typewriter__cursor" aria-hidden="true"></span>
+</span>
+
+<script>
+  const typewriters = document.querySelectorAll<HTMLElement>(".typewriter");
+
+  typewriters.forEach((element) => {
+    if (element.dataset.initialized) return;
+    element.dataset.initialized = "true";
+
+    const textElement =
+      element.querySelector<HTMLElement>(".typewriter__text");
+
+    if (!textElement) return;
+
+    const words: string[] = JSON.parse(element.dataset.words ?? "[]");
+    const typingSpeed = Number(element.dataset.typingSpeed ?? 80);
+    const deletingSpeed = Number(element.dataset.deletingSpeed ?? 45);
+    const pauseTime = Number(element.dataset.pauseTime ?? 1600);
+
+    if (!words.length) return;
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    if (reduceMotion) {
+      textElement.textContent = words[0];
+      return;
+    }
+
+    let wordIndex = 0;
+    let characterIndex = 0;
+    let deleting = false;
+
+    const animate = () => {
+      const currentWord = words[wordIndex];
+
+      characterIndex += deleting ? -1 : 1;
+      textElement.textContent = currentWord.slice(0, characterIndex);
+
+      let delay = deleting ? deletingSpeed : typingSpeed;
+
+      if (!deleting && characterIndex === currentWord.length) {
+        deleting = true;
+        delay = pauseTime;
+      } else if (deleting && characterIndex === 0) {
+        deleting = false;
+        wordIndex = (wordIndex + 1) % words.length;
+        delay = 350;
+      }
+
+      window.setTimeout(animate, delay);
+    };
+
+    animate();
+  });
+</script>
+
+<style>
+  .typewriter {
+    display: inline-flex;
+    align-items: baseline;
+    min-height: 1em;
+  }
+
+  .typewriter__cursor {
+    width: 0.08em;
+    height: 0.9em;
+    margin-left: 0.12em;
+    background: currentColor;
+    animation: blink 0.8s steps(1) infinite;
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .typewriter__cursor {
+      animation: none;
+    }
+  }
+</style>
