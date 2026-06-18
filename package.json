@@ -9,7 +9,7 @@
   "packageManager": "pnpm@10.33.0",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && pnpm dlx pagefind@1.5.2 --site dist",
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
