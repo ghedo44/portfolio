@@ -3,9 +3,11 @@ import { Image } from "astro:assets";
 import type { CollectionEntry } from "astro:content";
 import "katex/dist/katex.min.css";
 import BaseLayout from "./BaseLayout.astro";
+import BlogSearch from "../components/BlogSearch.astro";
+import Comments from "../components/Comments.astro";
 import FormattedDate from "../components/FormattedDate.astro";
 import HeaderLink from "../components/HeaderLink.astro";
-import Comments from "../components/Comments.astro";
+import PagefindAssets from "../components/PagefindAssets.astro";
 
 type Props = CollectionEntry<"blog">;
 
@@ -29,8 +31,13 @@ const pageTitle = `${title}`;
   pageType="article"
   publishedTime={pubDate}
   modifiedTime={updatedDate}
+  pagefind={true}
 >
+  <PagefindAssets slot="head" />
+
   <div class="max-w-3xl mx-auto px-4 py-12 sm:py-16">
+    <BlogSearch compact={true} />
+
     <div class="mb-8">
       <HeaderLink href="/blog/" data-return-link>
         &larr; All posts
@@ -76,7 +83,11 @@ const pageTitle = `${title}`;
           tags && tags.length > 0 && (
             <div class="flex flex-wrap gap-1.5 mt-3">
               {tags.map((tag) => (
-                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full" transition:name={`post-tag-${id}-${tag}`}>
+                <span
+                  class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full"
+                  transition:name={`post-tag-${id}-${tag}`}
+                  data-pagefind-filter="tag"
+                >
                   {tag}
                 </span>
               ))}
