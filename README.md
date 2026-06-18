@@ -8,6 +8,7 @@ Personal portfolio — aerospace projects and technical notes about space engine
 * [Tailwind CSS](https://tailwindcss.com) — utility-first CSS framework
 * [Giscus](https://giscus.app/) — comments powered by GitHub Discussions
 * [Pages CMS](https://pagescms.org/) — Git-based content management
+* [Pagefind](https://pagefind.app/) — static site search
 
 ## Requirements
 
@@ -20,9 +21,11 @@ Personal portfolio — aerospace projects and technical notes about space engine
 pnpm install
 pnpm dev       # Start dev server
 pnpm check     # Type-check the project
-pnpm build     # Build for production
-pnpm preview   # Preview production build
+pnpm build     # Build the site and generate the search index
+pnpm preview   # Preview the production build
 ```
+
+Pagefind indexes the generated HTML after Astro builds. Search is therefore available in production and when running `pnpm build` followed by `pnpm preview`, but not during `pnpm dev`.
 
 ## Project structure
 
@@ -31,7 +34,7 @@ src/
   assets/            — images, fonts
   components/        — reusable Astro components
   content/blog/      — blog posts (MDX)
-  data/              — typed data (projects, etc.)
+  content/projects/  — projects (MDX)
   layouts/           — page layouts
   pages/             — routes
   styles/            — global CSS
@@ -64,7 +67,7 @@ Set `draft: true` to hide it from production builds.
 
 ### Project
 
-Edit `src/data/projects.ts` and add an entry to the array.
+Add a new `.mdx` file inside `src/content/projects/` or use Pages CMS.
 
 ## Production domain
 
