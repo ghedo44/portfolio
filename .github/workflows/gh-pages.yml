@@ -13,10 +13,217 @@ permissions:
 
 concurrency:
   group: github-pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
+  decide:
+    name: Check whether deployment is needed
+    runs-on: ubuntu-latest
+
+    outputs:
+      build: ${{ steps.decision.outputs.build }}
+
+    steps:
+      - name: Checkout repository history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Inspect pushed changes
+        id: decision
+        shell: bash
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          build_site() {
+            echo "build=true" >> "$GITHUB_OUTPUT"
+            echo "### Deployment required" >> "$GITHUB_STEP_SUMMARY"
+            echo "$1" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          }
+
+          skip_site() {
+            echo "build=false" >> "$GITHUB_OUTPUT"
+            echo "### Deployment skipped" >> "$GITHUB_STEP_SUMMARY"
+            echo "$1" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          }
+
+          # Always build when manually triggered.
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            build_site "The workflow was started manually."
+          fi
+
+          # Build safely if GitHub does not provide a usable previous commit.
+          if [[ -z "${BEFORE:-}" || "$BEFORE" =~ ^0+$ ]]; then
+            build_site "No previous commit was available."
+          fi
+
+          if ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            build_site "The previous commit was not available locally."
+          fi
+
+          # PageCMS commits use the configured "content: ..." prefix.
+          # Any normal code/configuration commit still rebuilds the site.
+          mapfile -t commit_subjects < <(
+            git log --format='%s' "${BEFORE}..${AFTER}"
+          )
+
+          if (( ${#commit_subjects[@]} == 0 )); then
+            build_site "The pushed commit range could not be determined."
+          fi
+
+          for subject in "${commit_subjects[@]}"; do
+            if [[ "$subject" != "content: "* ]]; then
+              build_site "The push contains a non-PageCMS commit: ${subject}"
+            fi
+          done
+
+          # Return success when a Markdown/MDX file explicitly contains:
+          #
+          # draft: false
+          #
+          # inside its YAML frontmatter.
+          is_public_at() {
+            local ref="$1"
+            local path="$2"
+
+            git show "${ref}:${path}" 2>/dev/null |
+              awk '
+                BEGIN {
+                  frontmatter = 0
+                  published = 0
+                }
+
+                /^---[[:space:]]*$/ {
+                  frontmatter++
+
+                  if (frontmatter == 2) {
+                    exit(published ? 0 : 1)
+                  }
+
+                  next
+                }
+
+                frontmatter == 1 &&
+                $0 ~ /^[[:space:]]*draft:[[:space:]]*false[[:space:]]*(#.*)?$/ {
+                  published = 1
+                }
+
+                END {
+                  exit(published ? 0 : 1)
+                }
+              '
+          }
+
+          # Check changed blog and project content.
+          #
+          # Both the old and new revisions are checked so these cases build:
+          # - publishing a draft
+          # - editing an existing published item
+          # - changing draft:false to draft:true
+          # - deleting a published item
+          # - renaming a published item
+          mapfile -d '' -t changed_content < <(
+            git diff \
+              --no-renames \
+              --name-only \
+              -z \
+              "$BEFORE" \
+              "$AFTER" \
+              -- \
+              'src/content/blog/' \
+              'src/content/projects/'
+          )
+
+          for content_file in "${changed_content[@]}"; do
+            case "$content_file" in
+              *.md|*.mdx)
+                if is_public_at "$BEFORE" "$content_file" ||
+                   is_public_at "$AFTER" "$content_file"; then
+                  build_site "PageCMS changed published content: ${content_file}"
+                fi
+                ;;
+            esac
+          done
+
+          # Check whether an image is referenced by public content.
+          #
+          # Example:
+          # src/assets/blog/example.webp
+          #
+          # is referenced from a blog post as:
+          # ../../assets/blog/example.webp
+          image_used_by_public_content() {
+            local ref="$1"
+            local asset_path="$2"
+            local relative_path
+            local content_root
+
+            case "$asset_path" in
+              src/assets/blog/*)
+                relative_path="../../assets/blog/${asset_path#src/assets/blog/}"
+                content_root="src/content/blog"
+                ;;
+
+              src/assets/projects/*)
+                relative_path="../../assets/projects/${asset_path#src/assets/projects/}"
+                content_root="src/content/projects"
+                ;;
+
+              *)
+                return 1
+                ;;
+            esac
+
+            while IFS= read -r content_file; do
+              [[ -z "$content_file" ]] && continue
+
+              if is_public_at "$ref" "$content_file" &&
+                 git show "${ref}:${content_file}" 2>/dev/null |
+                   grep -Fq -- "$relative_path"; then
+                return 0
+              fi
+            done < <(
+              git ls-tree -r --name-only "$ref" -- "$content_root" |
+                grep -E '\.(md|mdx)$' || true
+            )
+
+            return 1
+          }
+
+          # Check images changed through PageCMS.
+          #
+          # An image build runs only when the image is referenced by
+          # draft:false content in either the old or new revision.
+          mapfile -d '' -t changed_assets < <(
+            git diff \
+              --no-renames \
+              --name-only \
+              -z \
+              "$BEFORE" \
+              "$AFTER" \
+              -- \
+              'src/assets/blog/' \
+              'src/assets/projects/'
+          )
+
+          for asset_file in "${changed_assets[@]}"; do
+            if image_used_by_public_content "$BEFORE" "$asset_file" ||
+               image_used_by_public_content "$AFTER" "$asset_file"; then
+              build_site "PageCMS changed an image used by published content: ${asset_file}"
+            fi
+          done
+
+          skip_site "PageCMS changed only unused images or draft-only content."
+
   build:
+    name: Build Astro site
+    needs: decide
+    if: needs.decide.outputs.build == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -30,6 +237,7 @@ jobs:
           package-manager: pnpm@10.33.0
 
   deploy:
+    name: Deploy GitHub Pages
     needs: build
     runs-on: ubuntu-latest
 
